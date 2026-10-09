@@ -1,4 +1,4 @@
-# WinWeaver — Windows 11 tweaker
+﻿# WinWeaver — Windows 11 tweaker
 # Copyright (C) 2026 fel7xxx
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -8,9 +8,11 @@
 # See the LICENSE file for details. "WinWeaver" and "WeavOS" names: see TRADEMARKS.md.
 
 $ErrorActionPreference = 'Stop'
-$env:ProgramData = '/tmp/pd'; $env:WINDIR = '/tmp/win'; $env:APPDATA='/tmp/ad'; $env:TEMP='/tmp'
-Remove-Item /tmp/pd -Recurse -Force -ErrorAction SilentlyContinue; foreach ($f in [IO.Directory]::GetFiles('/tmp', 'pd*')) { [IO.File]::Delete($f) }
-New-Item -ItemType Directory /tmp/pd -Force | Out-Null
+# private sandbox folder: works on Windows (CI) and Linux alike
+$T = Join-Path ([IO.Path]::GetTempPath()) ('ww-tests-' + [guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory $T -Force | Out-Null
+$env:ProgramData = Join-Path $T 'pd'; $env:WINDIR = Join-Path $T 'win'; $env:APPDATA = Join-Path $T 'ad'; $env:TEMP = $T
+New-Item -ItemType Directory $env:ProgramData -Force | Out-Null
 $global:FAKEREG = @{}
 function global:K($p) { ($p -replace '^HKCU:','HKCU' -replace '^HKLM:','HKLM').TrimEnd('\').ToLower() }
 function global:IsReg($p) { "$p" -match '^(HKCU|HKLM)' }
