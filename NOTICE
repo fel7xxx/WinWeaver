@@ -1,0 +1,23 @@
+WinWeaver — Windows 11 tweaker
+Copyright (C) 2026 fel7xxx
+https://github.com/fel7xxx/WinWeaver
+
+This program is free software: you can redistribute it and/or modify it under the terms of the
+GNU General Public License as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version. This program is distributed in the hope that it
+will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the LICENSE file for details.
+
+"WinWeaver" and "WeavOS" names, the logo and the WeavOS wallpapers: see TRADEMARKS.md.
+Modified versions must be renamed and credited as "Based on WinWeaver by fel7xxx".
+
+Third-party components
+----------------------
+- Microsoft.PowerShell.5.1.ReferenceAssemblies, Microsoft.NETFramework.ReferenceAssemblies —
+  build-time reference packages from Microsoft (MIT), not shipped in the exe.
+- Browser logos (app/logos) are trademarks of their owners and are used only to identify
+  the corresponding browsers.
+- The WeavOS wallpapers use the Manrope typeface by Mikhail Sharanda (SIL Open Font License 1.1);
+  the font itself is not included.
+- 7-Zip, browsers and Visual C++ / DirectX runtimes are downloaded from their official sources
+  only when the user chooses so; they are not part of this program.

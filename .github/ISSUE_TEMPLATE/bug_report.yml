@@ -1,0 +1,50 @@
+name: "🐞 Ошибка / Bug report"
+description: "Что-то работает не так / Something doesn't work as expected"
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Спасибо, что сообщаешь об ошибке! Проще всего открыть эту форму из самой программы: **Настройки → Сообщить об ошибке** — версия, Windows и журнал подставятся сами.
+        Thanks for the report! The easiest way is to open this form from the app: **Settings → Report a bug** — version, Windows and the log are filled in for you.
+  - type: input
+    id: version
+    attributes:
+      label: "Версия WinWeaver / WinWeaver version"
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: "Версия Windows / Windows version"
+      placeholder: "Windows 11 Pro 24H2 (26100.4061)"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Что ты делал / Steps to reproduce"
+      placeholder: |
+        1. Открыл раздел «Программы» / Opened "Programs"
+        2. Нажал «Удалить» у… / Clicked "Remove" on…
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Что ожидал и что произошло / Expected vs. actual result"
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: "Журнал / Log"
+      description: "Кнопка «Скопировать сведения» в окне «Сообщить об ошибке», затем Ctrl + V. / Use \"Copy details\" in the \"Report a bug\" window, then Ctrl + V."
+      render: text
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "Скриншоты / Screenshots"
+      description: "Необязательно — можно перетащить картинку сюда. / Optional — drag an image here."

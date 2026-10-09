@@ -1,0 +1,12 @@
+# build output
+app/bin/
+app/obj/
+app/out/
+out/
+*.user
+.vs/
+# local files
+*.log
+Thumbs.db
+desktop.ini
+tools/wallpapers/*.ttf

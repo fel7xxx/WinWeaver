@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "💬 Вопросы и обсуждения / Questions & discussions"
+    url: https://github.com/fel7xxx/WinWeaver/discussions
+    about: "Вопросы по использованию лучше задавать здесь / Please ask usage questions here"
+  - name: "🔒 Уязвимость / Security issue"
+    url: https://github.com/fel7xxx/WinWeaver/security/advisories/new
+    about: "Не публикуй уязвимости в открытых задачах / Please report vulnerabilities privately"

@@ -1,0 +1,25 @@
+name: "💡 Идея / Feature request"
+description: "Предложить новую функцию или улучшение / Suggest a new feature or improvement"
+title: "[Idea] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: "Что хочется улучшить / What would you like to improve"
+      description: "Какую задачу это решит? / What problem would it solve?"
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: "Как это могло бы выглядеть / How it could work"
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Другие варианты / Alternatives"
+  - type: input
+    id: version
+    attributes:
+      label: "Версия WinWeaver / WinWeaver version"
+      placeholder: "1.0.0"
