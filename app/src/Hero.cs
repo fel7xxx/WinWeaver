@@ -148,7 +148,7 @@ namespace WinWeaver
 
 		public int DoLayout(int x, int y, int w)
 		{
-			int h = Theme.S(250f);
+			int h = Theme.S(286f);
 			SetBounds(x, y, w, h);
 			return h;
 		}
@@ -306,9 +306,7 @@ namespace WinWeaver
 			Rectangle l3 = new Rectangle(x, Theme.S(121f) + lift, textR - x, Theme.S(20f));
 			TextRenderer.DrawText(g, Line3, Theme.Small, l3, Theme.Mix(Color.FromArgb(30, 30, 34), Theme.Sub, ap), TextFormatFlags.NoPrefix | TextFormatFlags.EndEllipsis | TextFormatFlags.SingleLine);
 			PaintScore(g, ap, x, textR);
-			_chips[0].R = Rectangle.Empty;
-			_chips[1].R = Rectangle.Empty;
-			_chips[2].R = Rectangle.Empty;
+			PaintChips(g, ap, x, textR, Theme.S(152f) + lift);
 			if (Wide)
 			{
 				PaintSpecs(g, ap);
@@ -430,6 +428,7 @@ namespace WinWeaver
 							}
 						}
 						g.Clip = old;
+						old.Dispose();
 						using (Pen dp = new Pen(Color.FromArgb(70, 22, 22, 26)))
 						{
 							g.DrawLine(dp, cr.X, cr.Y + Theme.S(8f), cr.X, cr.Bottom - Theme.S(8f));
@@ -477,47 +476,97 @@ namespace WinWeaver
 			TextRenderer.DrawText(g, sub, Theme.Small, new Rectangle(tx, box.Y + Theme.S(40f), Math.Max(10, tw), Theme.S(20f)), Theme.Sub, TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
 		}
 
+		// status chips under the OS line: current level and number of changes (clickable)
+		private void PaintChips(Graphics g, float ap, int x, int textR, int y)
+		{
+			_chips[1].R = Rectangle.Empty;
+			int cx = x;
+			int ch = Theme.S(26f);
+			foreach (int i in new int[2] { 0, 2 })
+			{
+				Chip c = _chips[i];
+				string t = (i == 0) ? ("Уровень: " + c.Text) : c.Text;
+				int w = Theme.Measure(t, Theme.Tiny).Width + Theme.S(34f);
+				if (cx + w > textR)
+				{
+					c.R = Rectangle.Empty;
+					continue;
+				}
+				Rectangle r = new Rectangle(cx, y, w, ch);
+				c.R = r;
+				bool hot = _hot == c.Key;
+				using (GraphicsPath gp = Theme.Round(r, ch / 2f))
+				{
+					using (SolidBrush b = new SolidBrush(Color.FromArgb((int)((hot ? 70 : 46) * ap), 26, 27, 32)))
+					{
+						g.FillPath(b, gp);
+					}
+					using (SolidBrush b2 = new SolidBrush(Color.FromArgb((int)((hot ? 22 : 10) * ap), 255, 255, 255)))
+					{
+						g.FillPath(b2, gp);
+					}
+					using (Pen pen = new Pen(Color.FromArgb((int)((hot ? 110 : 55) * ap), 255, 255, 255)))
+					{
+						g.DrawPath(pen, gp);
+					}
+				}
+				int d = Theme.S(7f);
+				using (SolidBrush db = new SolidBrush(Color.FromArgb((int)(255 * ap), c.Color)))
+				{
+					g.FillEllipse(db, r.X + Theme.S(12f), r.Y + (ch - d) / 2f, d, d);
+				}
+				TextRenderer.DrawText(g, t, Theme.Tiny, new Rectangle(r.X + Theme.S(24f), r.Y, w - Theme.S(28f), ch), Theme.Mix(Color.FromArgb(30, 30, 34), hot ? Theme.Text : Theme.Silver1, ap), TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter);
+				cx = r.Right + Theme.S(8f);
+			}
+		}
+
+		// 2×2 spec tiles: CPU, GPU, memory and drive (memory and drive show a usage bar)
 		private void PaintSpecs(Graphics g, float ap)
 		{
 			Rectangle p = Panel();
 			p.Offset(0, (int)((1f - ap) * Theme.S(10f)));
-			using (GraphicsPath gp = Theme.Round(p, Theme.S(14f)))
-			{
-				using (SolidBrush b = new SolidBrush(Color.FromArgb((int)(150 * ap), 16, 16, 19)))
-				{
-					g.FillPath(b, gp);
-				}
-				using (Pen pen = new Pen(Color.FromArgb((int)(60 * ap), 255, 255, 255)))
-				{
-					g.DrawPath(pen, gp);
-				}
-			}
 			string[] lab = new string[4] { "Процессор", "Видеокарта", "Память", "Диск" };
 			string[] val = new string[4] { _cpu, _gpu, _ram, _disk };
 			string[] gl = new string[4] { Glyph.Cpu, Glyph.Monitor, Glyph.Ram, Glyph.Disk };
-			int pad = Theme.S(16f);
-			int rowH = (p.Height - pad * 2) / 4;
+			int gap = Theme.S(10f);
+			int tw0 = (p.Width - gap) / 2;
+			int th0 = (p.Height - gap) / 2;
+			int pad = Theme.S(14f);
+			Color lc = Theme.Mix(Color.FromArgb(20, 20, 24), Theme.Dim, ap);
+			Color vc = Theme.Mix(Color.FromArgb(20, 20, 24), Theme.Text, ap);
 			for (int i = 0; i < 4; i++)
 			{
-				int y = p.Y + pad + i * rowH;
-				int ib = Theme.S(30f);
-				Rectangle icon = new Rectangle(p.X + pad, y + (rowH - ib) / 2, ib, ib);
+				Rectangle t = new Rectangle(p.X + (i % 2) * (tw0 + gap), p.Y + (i / 2) * (th0 + gap), tw0, th0);
+				using (GraphicsPath gp = Theme.Round(t, Theme.S(12f)))
+				{
+					using (SolidBrush b = new SolidBrush(Color.FromArgb((int)(150 * ap), 16, 16, 19)))
+					{
+						g.FillPath(b, gp);
+					}
+					using (Pen pen = new Pen(Color.FromArgb((int)(55 * ap), 255, 255, 255)))
+					{
+						g.DrawPath(pen, gp);
+					}
+				}
+				int ib = Theme.S(26f);
+				Rectangle icon = new Rectangle(t.X + pad, t.Y + pad, ib, ib);
 				Theme.IconBox(g, icon, gl[i], bright: false, 0f, Theme.IconSmall);
-				int tx = icon.Right + Theme.S(12f);
-				int tw = p.Right - pad - tx;
-				Color lc = Theme.Mix(Color.FromArgb(20, 20, 24), Theme.Dim, ap);
-				Color vc = Theme.Mix(Color.FromArgb(20, 20, 24), Theme.Text, ap);
-				TextRenderer.DrawText(g, lab[i], Theme.Tiny, new Rectangle(tx, y + Theme.S(4f), tw, Theme.S(16f)), lc, TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine);
+				int lx = icon.Right + Theme.S(10f);
+				TextRenderer.DrawText(g, lab[i], Theme.Tiny, new Rectangle(lx, icon.Y, t.Right - pad - lx, ib), lc, TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
 				bool bar = i >= 2;
-				int vw = bar ? (tw - Theme.S(96f)) : tw;
-				TextRenderer.DrawText(g, (val[i] == "") ? "…" : val[i], Theme.Small, new Rectangle(tx, y + Theme.S(19f), vw, Theme.S(20f)), vc, TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
+				int vy = icon.Bottom + Theme.S(8f);
+				int vb = bar ? (t.Bottom - pad - Theme.S(20f)) : (t.Bottom - pad);
+				Rectangle vr = new Rectangle(t.X + pad, vy, t.Width - pad * 2, Math.Max(Theme.S(18f), vb - vy));
+				TextRenderer.DrawText(g, (val[i] == "") ? "…" : val[i], Theme.Small, vr, vc, TextFormatFlags.NoPrefix | TextFormatFlags.WordBreak | TextFormatFlags.EndEllipsis);
 				if (bar)
 				{
 					float v = (i == 2) ? _ramBar.Value : _diskBar.Value;
-					RectangleF br = new RectangleF(p.Right - pad - Theme.S(86f), y + Theme.S(26f), Theme.S(86f), Theme.S(5f));
+					string pc = "занято " + (int)Math.Round(v * 100f) + "%";
+					int pw = Theme.Measure(pc, Theme.Tiny).Width + Theme.S(12f);
+					int by = t.Bottom - pad - Theme.S(8f);
+					RectangleF br = new RectangleF(t.X + pad, by, t.Width - pad * 2 - pw - Theme.S(8f), Theme.S(5f));
 					Theme.Progress(g, br, v, -1f);
-					string pc = (int)Math.Round(v * 100f) + "%";
-					TextRenderer.DrawText(g, (i == 2 ? "занято " : "занято ") + pc, Theme.Tiny, new Rectangle((int)br.X - Theme.S(20f), y + Theme.S(4f), (int)br.Width + Theme.S(20f), Theme.S(16f)), lc, TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.Right);
+					TextRenderer.DrawText(g, pc, Theme.Tiny, new Rectangle(t.Right - pad - pw, by - Theme.S(6f), pw, Theme.S(16f)), lc, TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.Right | TextFormatFlags.VerticalCenter);
 				}
 			}
 		}

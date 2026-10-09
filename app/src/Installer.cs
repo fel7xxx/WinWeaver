@@ -67,7 +67,28 @@ namespace WinWeaver
 				File.Copy(RunningExe, tmp, overwrite: true);
 				if (File.Exists(dst))
 				{
-					File.Delete(dst);
+					try
+					{
+						File.Delete(dst);
+					}
+					catch (Exception) when (File.Exists(dst))
+					{
+						// the installed copy is running (or locked by an antivirus scan): a running exe cannot be
+						// deleted but can be renamed; the leftover is removed on the next install
+						string old = dst + ".old";
+						try
+						{
+							if (File.Exists(old))
+							{
+								File.Delete(old);
+							}
+						}
+						catch
+						{
+							old = dst + "." + Guid.NewGuid().ToString("N").Substring(0, 8) + ".old";
+						}
+						File.Move(dst, old);
+					}
 				}
 				File.Move(tmp, dst);
 			}

@@ -22,7 +22,7 @@ namespace WinWeaver
 		// the system look applied by the auto-tune (wallpaper text, OEM name)
 		public const string OsName = "WeavOS";
 
-		public const string Version = "1.0.0";
+		public const string Version = "1.0.1";
 
 		public const string Folder = "WinWeaver";
 

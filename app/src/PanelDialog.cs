@@ -178,7 +178,7 @@ namespace WinWeaver
 
 		protected void Label(Graphics g, string text, int y, string right = null)
 		{
-			TextRenderer.DrawText(g, text.ToUpperInvariant(), Theme.F(8f, semi: true), new Point(M, y), Theme.Sub, TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding);
+			TextRenderer.DrawText(g, text.ToUpperInvariant(), Theme.FC(8f, semi: true), new Point(M, y), Theme.Sub, TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding);
 			if (right != null)
 			{
 				TextRenderer.DrawText(g, right, Theme.Tiny, new Rectangle(M, y, InnerW, Theme.S(16f)), Theme.Dim, TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding | TextFormatFlags.Right);
@@ -482,6 +482,7 @@ namespace WinWeaver
 							}
 						}
 						g.Clip = old;
+						old.Dispose();
 					}
 					y = pr.Bottom + Theme.S(8f);
 				}

@@ -297,6 +297,7 @@ namespace WinWeaver
 						g.FillRectangle(gb, sr);
 					}
 					g.Clip = old;
+					old.Dispose();
 				}
 			}
 			for (int i = 0; i < Cats.Count; i++)

@@ -301,6 +301,7 @@ namespace WinWeaver
 							g.SetClip(clip, CombineMode.Intersect);
 							g.FillEllipse(pb, gr);
 							g.Clip = old;
+							old.Dispose();
 						}
 					}
 				}

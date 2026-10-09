@@ -122,11 +122,11 @@ namespace WinWeaver
 			{
 				_shimmer = new Timer
 				{
-					Interval = 30
+					Interval = 33
 				};
 				_shimmer.Tick += delegate
 				{
-					_phase = (_phase + 0.018f) % 1f;
+					_phase = (float)(Anim.Now % 1670.0 / 1670.0);
 					Invalidate();
 				};
 			}
@@ -183,9 +183,7 @@ namespace WinWeaver
 			_titleR = new Rectangle(pad, top, tw, th);
 			int gh = Math.Max(Theme.Measure(Tagline, Theme.Small, tw, wrap: true).Height, Theme.Measure("A\nA", Theme.Small, tw, wrap: true).Height);
 			_tagR = new Rectangle(pad, _titleR.Bottom + Theme.S(3f), tw, gh);
-			_meterR = new Rectangle(pad, _tagR.Bottom + Theme.S(14f), tw, Theme.S(30f));
-			_divY = _meterR.Bottom + Theme.S(14f);
-			top = _divY + Theme.S(14f);
+			top = _tagR.Bottom + Theme.S(18f);
 			int px = pad + Theme.S(28f);
 			int pw = Math.Max(Theme.S(60f), w - px - pad);
 			_pointR.Clear();
@@ -195,8 +193,10 @@ namespace WinWeaver
 				_pointR.Add(new Rectangle(px, top, pw, ph));
 				top += Math.Max(ph, Theme.S(18f)) + Theme.S(10f);
 			}
+			_divY = top + Theme.S(4f);
+			_meterR = new Rectangle(pad, _divY + Theme.S(14f), tw, Theme.S(16f));
 			int bh = Theme.S(40f);
-			int h = top + Theme.S(10f) + bh + pad;
+			int h = _meterR.Bottom + Theme.S(16f) + bh + pad;
 			SetBounds(x, y, w, h);
 			PlaceButton();
 			Invalidate();
@@ -208,6 +208,9 @@ namespace WinWeaver
 			int pad = base.Pad;
 			int bh = Theme.S(40f);
 			Btn.SetBounds(pad, base.Height - pad - bh, Math.Max(Theme.S(80f), base.Width - pad * 2), bh);
+			// footer is pinned to the bottom so the meters line up across cards of the same row
+			_meterR = new Rectangle(pad, base.Height - pad - bh - Theme.S(16f) - Theme.S(16f), Math.Max(Theme.S(60f), base.Width - pad * 2), Theme.S(16f));
+			_divY = _meterR.Y - Theme.S(14f);
 		}
 
 		protected override void OnSizeChanged(EventArgs e)
@@ -251,6 +254,7 @@ namespace WinWeaver
 					g.SetClip(path, CombineMode.Intersect);
 					g.FillRectangle(gb, gr);
 					g.Clip = old;
+					old.Dispose();
 				}
 				int a1 = (int)Math.Min(255f, (Recommended ? 150 : 50) + 80f * hot + (_running ? 60 : 0) + (Current ? 40 : 0));
 				using (LinearGradientBrush brush = new LinearGradientBrush(new RectangleF(r.X, r.Y - 1f, r.Width, r.Height + 2f), Color.FromArgb(a1, tone), Color.FromArgb(24, tone), 90f))
@@ -310,14 +314,21 @@ namespace WinWeaver
 			}
 			TextRenderer.DrawText(g, Title, TitleBig, _titleR, Theme.Text, TextFormatFlags.NoPrefix | TextFormatFlags.WordBreak);
 			TextRenderer.DrawText(g, Tagline, Theme.Small, _tagR, Theme.Sub, TextFormatFlags.NoPrefix | TextFormatFlags.WordBreak);
-			// depth meter: three segments
-			TextRenderer.DrawText(g, "Глубина", Theme.Tiny, new Rectangle(_meterR.X, _meterR.Y, _meterR.Width, Theme.S(16f)), Theme.Dim, TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine);
-			TextRenderer.DrawText(g, DepthText, Theme.Tiny, new Rectangle(_meterR.X, _meterR.Y, _meterR.Width, Theme.S(16f)), Theme.Mix(Theme.Sub, Theme.Text, hot), TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.Right);
-			int gap = Theme.S(5f);
-			float segW = (_meterR.Width - gap * 2) / 3f;
+			// footer: divider + depth meter in one row ("Глубина  Сбалансированно" ●●○)
+			using (Pen dp = new Pen(Color.FromArgb(26, 255, 255, 255)))
+			{
+				g.DrawLine(dp, pad, _divY, base.Width - pad, _divY);
+			}
+			int gap = Theme.S(4f);
+			float segW = Theme.S(22f);
+			float segX = _meterR.Right - (segW * 3 + gap * 2);
+			string dl = "Глубина";
+			int dlw = Theme.Measure(dl, Theme.Tiny).Width + Theme.S(6f);
+			TextRenderer.DrawText(g, dl, Theme.Tiny, new Rectangle(_meterR.X, _meterR.Y, dlw + Theme.S(4f), _meterR.Height), Theme.Dim, TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
+			TextRenderer.DrawText(g, DepthText, Theme.Tiny, new Rectangle(_meterR.X + dlw, _meterR.Y, Math.Max(10, (int)segX - _meterR.X - dlw - Theme.S(8f)), _meterR.Height), Theme.Mix(Theme.Sub, Theme.Text, hot), TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding | TextFormatFlags.EndEllipsis);
 			for (int i = 0; i < 3; i++)
 			{
-				RectangleF sr = new RectangleF(_meterR.X + i * (segW + gap), _meterR.Bottom - Theme.S(6f), segW, Theme.S(6f));
+				RectangleF sr = new RectangleF(segX + i * (segW + gap), _meterR.Y + (_meterR.Height - Theme.S(6f)) / 2f, segW, Theme.S(6f));
 				using (GraphicsPath sp = Theme.Round(sr, Theme.S(3f)))
 				{
 					if (i < Depth)
@@ -333,10 +344,6 @@ namespace WinWeaver
 						}
 					}
 				}
-			}
-			using (Pen dp = new Pen(Color.FromArgb(30, 255, 255, 255)))
-			{
-				g.DrawLine(dp, pad, _divY, base.Width - pad, _divY);
 			}
 			int lh = Theme.Measure("Ag", Theme.Small).Height;
 			for (int i = 0; i < _pointR.Count && i < Points.Length; i++)

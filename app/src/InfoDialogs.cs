@@ -121,6 +121,7 @@ namespace WinWeaver
 						g.FillRectangle(veil, br);
 					}
 					g.Clip = old;
+					old.Dispose();
 				}
 				using (Pen pen = new Pen(Color.FromArgb(60, Theme.Ice)))
 				{

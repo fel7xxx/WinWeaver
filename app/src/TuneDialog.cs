@@ -311,57 +311,57 @@ namespace WinWeaver
 
 		private void DoLayoutDlg()
 		{
-			int w = Theme.S(980f);
+			int w = Theme.S(960f);
 			int m = M;
-			int gapC = Theme.S(30f);
+			int gapC = Theme.S(24f);
 			int colW = (w - m * 2 - gapC) / 2;
 			int lx = m;
 			int rx = m + colW + gapC;
-			_heroR = new Rectangle(0, 0, w, Theme.S(136f));
+			_heroR = new Rectangle(0, 0, w, Theme.S(108f));
 			_chips.Clear();
 			int cxr = w - m;
 			string[] ct = ChipTexts;
 			for (int i = ct.Length - 1; i >= 0; i--)
 			{
 				int cw0 = Theme.Measure(ct[i], Theme.Small).Width + Theme.S(34f);
-				_chips.Insert(0, new Rectangle(cxr - cw0, Theme.S(28f), cw0, Theme.S(26f)));
+				_chips.Insert(0, new Rectangle(cxr - cw0, Theme.S(24f), cw0, Theme.S(24f)));
 				cxr -= cw0 + Theme.S(8f);
 			}
-			int top = _heroR.Bottom + Theme.S(22f);
+			int top = _heroR.Bottom + Theme.S(12f);
 			int y = top;
 			_planTop = y;
-			int cw = colW - Theme.S(40f);
+			int cw = colW - Theme.S(36f);
 			_planRows.Clear();
-			y += Theme.S(30f);
+			y += Theme.S(28f);
 			foreach (string p in _plan)
 			{
-				int h = Math.Max(Theme.S(24f), Theme.Measure(p, Theme.Small, cw, wrap: true).Height);
-				_planRows.Add(new Rectangle(lx + Theme.S(40f), y, cw, h));
-				y += h + Theme.S(10f);
+				int h = Math.Max(Theme.S(22f), Theme.Measure(p, Theme.Small, cw, wrap: true).Height);
+				_planRows.Add(new Rectangle(lx + Theme.S(36f), y, cw, h));
+				y += h + Theme.S(6f);
 			}
 			_planR = new Rectangle(lx, _planTop, colW, y - _planTop);
-			y += Theme.S(6f);
+			y += Theme.S(8f);
 			_fixedLabel = new Rectangle(lx, y, colW, Theme.S(20f));
-			y = _fixedLabel.Bottom + Theme.S(10f);
-			_fixedR = new Rectangle(lx, y, colW, Theme.S(64f));
+			y = _fixedLabel.Bottom + Theme.S(8f);
+			_fixedR = new Rectangle(lx, y, colW, Theme.S(60f));
 			int leftBottom = _fixedR.Bottom;
 			y = top;
 			_tilesLabel = new Rectangle(rx, y, colW, Theme.S(30f) + Theme.Measure(BrowserNote, Theme.Small, colW, wrap: true).Height + Theme.S(2f));
 			y = _tilesLabel.Bottom + Theme.S(10f);
 			int gap = Theme.S(10f);
 			int tw = (colW - gap) / 2;
-			int th = Theme.S(60f);
+			int th = Theme.S(54f);
 			for (int i = 0; i < AllTiles.Length; i++)
 			{
 				AllTiles[i].R = new Rectangle(rx + i % 2 * (tw + gap), y + i / 2 * (th + gap), tw, th);
 			}
 			int rightBottom = y + th * 3 + gap * 2;
-			y = Math.Max(leftBottom, rightBottom) + Theme.S(24f);
+			y = Math.Max(leftBottom, rightBottom) + Theme.S(16f);
 			_optLabel = new Rectangle(m, y, w - m * 2, Theme.S(20f));
-			y = _optLabel.Bottom + Theme.S(10f);
+			y = _optLabel.Bottom + Theme.S(8f);
 			int og = Theme.S(10f);
 			int ow = (w - m * 2 - og * 2) / 3;
-			int oh = Theme.S(58f);
+			int oh = Theme.S(52f);
 			for (int i = 0; i < _opts.Count; i++)
 			{
 				_opts[i].R = new Rectangle(m + i % 3 * (ow + og), y + i / 3 * (oh + og), ow, oh);
@@ -374,12 +374,12 @@ namespace WinWeaver
 			int chipW = segW / nc;
 			for (int i = 0; i < 3; i++)
 			{
-				_defChips[i] = (i < nc) ? new Rectangle(sx + i * chipW, _defR.Y + Theme.S(29f), (i == nc - 1) ? (segW - chipW * (nc - 1)) : chipW, Theme.S(22f)) : Rectangle.Empty;
+				_defChips[i] = (i < nc) ? new Rectangle(sx + i * chipW, _defR.Y + Theme.S(26f), (i == nc - 1) ? (segW - chipW * (nc - 1)) : chipW, Theme.S(22f)) : Rectangle.Empty;
 			}
-			y = _defR.Bottom + Theme.S(22f);
+			y = _defR.Bottom + Theme.S(16f);
 			_footTop = y;
-			int bh = Theme.S(40f);
-			int fh = bh + Theme.S(32f);
+			int bh = Theme.S(38f);
+			int fh = bh + Theme.S(24f);
 			base.Size = new Size(w, y + fh);
 			int by = y + (fh - bh) / 2;
 			_cancel.SetBounds(w - m - _cancel.Width, by, _cancel.Width, bh);
@@ -452,8 +452,8 @@ namespace WinWeaver
 				DrawSwitch(g, sw, o.On, tone, a);
 				int tx = r.X + Theme.S(16f);
 				int tw = sw.X - tx - Theme.S(10f);
-				TextRenderer.DrawText(g, o.Title, Theme.Body, new Rectangle(tx, r.Y + Theme.S(10f), tw, Theme.S(20f)), Fade(Theme.Text, a), TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
-				TextRenderer.DrawText(g, o.Hint, Theme.Tiny, new Rectangle(tx, r.Y + Theme.S(32f), tw, Theme.S(16f)), Fade(o.On ? Theme.Sub : Theme.Dim, a), TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
+				TextRenderer.DrawText(g, o.Title, Theme.Body, new Rectangle(tx, r.Y + Theme.S(7f), tw, Theme.S(20f)), Fade(Theme.Text, a), TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
+				TextRenderer.DrawText(g, o.Hint, Theme.Tiny, new Rectangle(tx, r.Y + Theme.S(28f), tw, Theme.S(16f)), Fade(o.On ? Theme.Sub : Theme.Dim, a), TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
 			}
 			Rectangle d = _defR;
 			d.Offset(0, (int)((1f - a) * Theme.S(8f)));
@@ -466,7 +466,7 @@ namespace WinWeaver
 					g.DrawPath(pen, p);
 				}
 			}
-			TextRenderer.DrawText(g, "Антивирус Defender", Theme.Body, new Rectangle(d.X + Theme.S(14f), d.Y + Theme.S(6f), d.Width - Theme.S(28f), Theme.S(20f)), Fade(Theme.Text, a), TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine);
+			TextRenderer.DrawText(g, "Антивирус Defender", Theme.Body, new Rectangle(d.X + Theme.S(14f), d.Y + Theme.S(4f), d.Width - Theme.S(28f), Theme.S(20f)), Fade(Theme.Text, a), TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine);
 			Rectangle track = Rectangle.Union(_defChips[0], _defChips[DefCount - 1]);
 			track.Offset(0, dy);
 			using (GraphicsPath tp = Theme.Round(track, track.Height / 2f))
@@ -521,6 +521,24 @@ namespace WinWeaver
 			}
 		}
 
+		// fully transparent before the window first appears: setting Opacity = 0 only in OnShown let the
+		// finished dialog flash for one frame and then vanish before fading in
+		protected override void OnLoad(EventArgs e)
+		{
+			if (Anim.Enabled)
+			{
+				_appear = 0f;
+				try
+				{
+					base.Opacity = 0.0;
+				}
+				catch
+				{
+				}
+			}
+			base.OnLoad(e);
+		}
+
 		protected override void OnShown(EventArgs e)
 		{
 			base.OnShown(e);
@@ -529,13 +547,6 @@ namespace WinWeaver
 				return;
 			}
 			_appear = 0f;
-			try
-			{
-				base.Opacity = 0.0;
-			}
-			catch
-			{
-			}
 			Anim.Start(this, 420, delegate(float t)
 			{
 				_appear = t;
@@ -770,7 +781,7 @@ namespace WinWeaver
 			}
 			int gr = Theme.S(210f);
 			int gx = M + Theme.S(32f);
-			int gy = Theme.S(66f);
+			int gy = Theme.S(54f);
 			using (GraphicsPath gp = new GraphicsPath())
 			{
 				gp.AddEllipse(gx - gr, gy - gr, gr * 2, gr * 2);
@@ -816,7 +827,7 @@ namespace WinWeaver
 			int m = M;
 			float a0 = A(0);
 			int lift = (int)((1f - a0) * Theme.S(8f));
-			Rectangle icon = new Rectangle(m, Theme.S(34f) + lift, Theme.S(64f), Theme.S(64f));
+			Rectangle icon = new Rectangle(m, Theme.S(26f) + lift, Theme.S(56f), Theme.S(56f));
 			using (GraphicsPath ip = Theme.Round(icon, icon.Width * 0.28f))
 			{
 				Theme.FillGradient(g, ip, icon, Fade(Theme.Mix(Color.FromArgb(70, 70, 82), tone, 0.35f), a0), Fade(Theme.Mix(Color.FromArgb(32, 32, 38), tone, 0.18f), a0));
@@ -828,16 +839,16 @@ namespace WinWeaver
 			Theme.DrawIcon(g, _glyph, Theme.IconBig ?? Theme.Icon, icon, Fade(Theme.Mix(tone, Color.White, 0.55f), a0));
 			int tx = icon.Right + Theme.S(18f);
 			string kicker = "АВТОНАСТРОЙКА  •  УРОВЕНЬ " + LevelNo + " ИЗ 3";
-			TextRenderer.DrawText(g, kicker, DlgChrome.KickerF, new Point(tx, Theme.S(36f) + lift), Fade(Theme.Mix(tone, Color.White, 0.35f), a0), TextFormatFlags.NoPrefix);
+			TextRenderer.DrawText(g, kicker, DlgChrome.KickerF, new Point(tx, Theme.S(24f) + lift), Fade(Theme.Mix(tone, Color.White, 0.35f), a0), TextFormatFlags.NoPrefix);
 			string name = _title.Replace("Автонастройка «", "").TrimEnd('»');
 			using (Font big = Theme.F(21f, semi: true))
 			{
 				if (a0 > 0.5f)
 				{
-					Theme.GradientText(g, name, big, new PointF(tx - Theme.S(1f), Theme.S(52f) + lift));
+					Theme.GradientText(g, name, big, new PointF(tx - Theme.S(1f), Theme.S(39f) + lift));
 				}
 			}
-			TextRenderer.DrawText(g, _tag, Theme.Body, new Point(tx, Theme.S(88f) + lift), Fade(Theme.Sub, a0), TextFormatFlags.NoPrefix);
+			TextRenderer.DrawText(g, _tag, Theme.Body, new Point(tx, Theme.S(74f) + lift), Fade(Theme.Sub, a0), TextFormatFlags.NoPrefix);
 			string[] ct = ChipTexts;
 			for (int i = 0; i < _chips.Count && i < ct.Length; i++)
 			{
@@ -866,7 +877,7 @@ namespace WinWeaver
 			float a1 = A(1);
 			Label(g, "Что изменится", new Rectangle(_planR.X, _planTop, _planR.Width, 0), a1);
 			int lh = Theme.Measure("Ag", Theme.Small).Height;
-			int ns = Theme.S(24f);
+			int ns = Theme.S(22f);
 			int lineX = _planR.X + ns / 2;
 			if (_planRows.Count > 1)
 			{
@@ -991,7 +1002,7 @@ namespace WinWeaver
 						cp.AddEllipse(c);
 						Theme.FillGradient(g, cp, c, Fade(t.C1, a), Fade(t.C2, a), 45f);
 					}
-					TextRenderer.DrawText(g, t.Mono, (t.Mono.Length > 1) ? Theme.F(9f, semi: true) : Theme.F(12f, semi: true), c, Fade(Color.White, a), TextFormatFlags.NoPrefix | TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
+					TextRenderer.DrawText(g, t.Mono, (t.Mono.Length > 1) ? Theme.FC(9f, semi: true) : Theme.FC(12f, semi: true), c, Fade(Color.White, a), TextFormatFlags.NoPrefix | TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
 				}
 				int x = c.Right + Theme.S(12f);
 				int w = r.Right - x - Theme.S(36f);

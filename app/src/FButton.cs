@@ -131,6 +131,20 @@ namespace WinWeaver
 			g.Clear(color);
 		}
 
+		// a button that hides itself or its page on click never gets MouseLeave: without this it came back
+		// still lit up ("stuck" hover) the next time it was shown
+		protected override void OnVisibleChanged(EventArgs e)
+		{
+			if (!base.Visible)
+			{
+				_hot = false;
+				_down = false;
+				_hotT.Snap(0f);
+				_downT.Snap(0f);
+			}
+			base.OnVisibleChanged(e);
+		}
+
 		protected override void OnEnabledChanged(EventArgs e)
 		{
 			_hot = false;

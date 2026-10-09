@@ -313,13 +313,19 @@ namespace WinWeaver
 
 		private float _smoothPos;
 
-		private Timer _smooth;
+		private bool _smoothOn;
 
-		private DateTime _smoothLast;
+		private double _smoothLast;
+
+		private Func<bool> _smoothFrame;
 
 		// wheel / page clicks: glide to the target instead of jumping (time based, ~120 ms to settle)
 		public void SmoothBy(int d)
 		{
+			if (Gated)
+			{
+				return;
+			}
 			if (!Anim.Enabled)
 			{
 				ScrollBy(d);
@@ -329,42 +335,60 @@ namespace WinWeaver
 			{
 				_smoothTarget = _scroll;
 				_smoothPos = _scroll;
-				_smoothLast = DateTime.UtcNow;
+				_smoothLast = Anim.Now;
+			}
+			else if (Math.Abs(_smoothPos - _scroll) > 1.5f)
+			{
+				// scrolled by something else meanwhile (thumb drag, relayout): continue from where the page really is
+				_smoothPos = _scroll;
+			}
+			float pending = _smoothTarget - _smoothPos;
+			if (d != 0 && pending != 0f && Math.Sign(d) != Math.Sign(pending))
+			{
+				// direction reversed while still gliding: start from the current position, so quick
+				// up/down wheel flicks move the page each time instead of cancelling out and leaving it in place
+				_smoothTarget = _smoothPos;
 			}
 			_smoothTarget = Math.Max(0, Math.Min(MaxScroll, _smoothTarget + d));
-			if (_smooth == null)
+			if (_smoothFrame == null)
 			{
-				_smooth = new Timer { Interval = 10 };
-				_smooth.Tick += delegate
-				{
-					SmoothStep();
-				};
+				_smoothFrame = SmoothStep;
 			}
-			if (!_smooth.Enabled)
+			if (!_smoothOn)
 			{
-				_smoothLast = DateTime.UtcNow;
-				_smooth.Start();
+				_smoothOn = true;
+				// first step right now, in the same wheel message: the page reacts instantly,
+				// the shared animation clock then finishes the glide
+				_smoothLast = Anim.Now - 16.0;
+				if (SmoothStep())
+				{
+					Anim.Frame(_smoothFrame);
+				}
 			}
 		}
 
 		private void StopSmooth()
 		{
 			_smoothTarget = -1f;
-			_smooth?.Stop();
+			_smoothOn = false;
 		}
 
-		private void SmoothStep()
+		private bool SmoothStep()
 		{
-			if (_smoothTarget < 0f)
+			if (_smoothTarget < 0f || IsDisposed)
 			{
-				_smooth.Stop();
-				return;
+				_smoothOn = false;
+				return false;
 			}
-			DateTime now = DateTime.UtcNow;
-			float dt = Math.Min(50f, (float)(now - _smoothLast).TotalMilliseconds);
+			if (Math.Abs(_smoothPos - _scroll) > 1.5f)
+			{
+				_smoothPos = _scroll;
+			}
+			double now = Anim.Now;
+			float dt = Math.Min(50f, (float)(now - _smoothLast));
 			_smoothLast = now;
 			_smoothTarget = Math.Max(0, Math.Min(MaxScroll, _smoothTarget));
-			float k = 1f - (float)Math.Exp(-dt / 55f);
+			float k = 1f - (float)Math.Exp(-dt / 45f);
 			_smoothPos += (_smoothTarget - _smoothPos) * k;
 			bool done = Math.Abs(_smoothTarget - _smoothPos) < 0.6f;
 			if (done)
@@ -377,13 +401,44 @@ namespace WinWeaver
 				_scroll = ns;
 				ClampScroll();
 				Invalidate(new Rectangle(base.Width - BarW, 0, BarW, base.Height));
-				Body.Update();
-				Update();
+				PaintNow();
 			}
 			if (done)
 			{
 				StopSmooth();
+				return false;
 			}
+			return true;
+		}
+
+		[System.Runtime.InteropServices.DllImport("user32.dll")]
+		private static extern bool RedrawWindow(IntPtr hWnd, IntPtr rect, IntPtr rgn, uint flags);
+
+		// set while the page is moving; cards don't light up under a pointer that only "meets" them because
+		// the content slid under it (that hover flicker during scrolling looked like lag)
+		private static double _scrollingUntil;
+
+		public static bool Scrolling => Anim.Now < _scrollingUntil;
+
+		// paint the strip that the scroll uncovered, *including* the child controls, in the same frame.
+		// Body.Update() painted only the canvas itself: cards and toggles in the new strip popped in a moment later.
+		private void PaintNow()
+		{
+			_scrollingUntil = Anim.Now + 120.0;
+			if (Win.IsWindows && Body.IsHandleCreated)
+			{
+				try
+				{
+					RedrawWindow(Body.Handle, IntPtr.Zero, IntPtr.Zero, 0x0100 | 0x0080); // RDW_UPDATENOW | RDW_ALLCHILDREN
+					Update();
+					return;
+				}
+				catch
+				{
+				}
+			}
+			Body.Update();
+			Update();
 		}
 
 		private void ClampScroll()
@@ -408,8 +463,8 @@ namespace WinWeaver
 			ClampScroll();
 			if (_scroll != scroll)
 			{
-				Invalidate();
-				Body.Update();
+				Invalidate(new Rectangle(base.Width - BarW, 0, BarW, base.Height));
+				PaintNow();
 			}
 		}
 
@@ -421,9 +476,21 @@ namespace WinWeaver
 			Invalidate();
 		}
 
+		// one wheel notch = Windows "lines per notch" (3 by default) × 40 px, scaled with DPI
+		// (it was a fixed 120 physical px, which felt slow on 125–200 % screens)
+		internal static int WheelPx(int delta)
+		{
+			int lines = SystemInformation.MouseWheelScrollLines;
+			if (lines <= 0 || lines > 20)
+			{
+				lines = 3;
+			}
+			return (int)Math.Round(delta / 120.0 * lines * Theme.S(40f));
+		}
+
 		protected override void OnMouseWheel(MouseEventArgs e)
 		{
-			SmoothBy(-e.Delta);
+			SmoothBy(-WheelPx(e.Delta));
 			if (e is HandledMouseEventArgs)
 			{
 				((HandledMouseEventArgs)e).Handled = true;
@@ -473,8 +540,8 @@ namespace WinWeaver
 				{
 					_scroll = _dragS0 + (e.Y - _dragY0) * MaxScroll / num;
 					ClampScroll();
-					Invalidate();
-					Body.Update();
+					Invalidate(new Rectangle(base.Width - BarW, 0, BarW, base.Height));
+					PaintNow();
 				}
 			}
 			base.OnMouseMove(e);

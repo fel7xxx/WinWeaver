@@ -356,6 +356,7 @@ namespace WinWeaver
 				y += H(r);
 			}
 			g.Clip = old;
+			old.Dispose();
 			if (MaxScroll > 0)
 			{
 				int trackH = _listR.Height - Theme.S(16f);

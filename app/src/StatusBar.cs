@@ -51,7 +51,7 @@ namespace WinWeaver
 
 		private float _visTarget;
 
-		private DateTime _lastTick = DateTime.Now;
+		private double _lastTick = Anim.Now;
 
 		private Rectangle _area;
 
@@ -528,10 +528,21 @@ namespace WinWeaver
 								_win.Render();
 							}
 						};
+						// a toast that was deferred while another app was in front appears when the user comes back
+						owner.Activated += delegate
+						{
+							if (_showing && _win != null && !_win.IsDisposed && !_win.Visible)
+							{
+								_win.Render();
+								_win.ShowOn(owner);
+							}
+						};
 					}
 				}
 				_win.Render();
-				if (!_win.Visible)
+				// showing a window (even without activation) puts it on top of the z-order — over other apps.
+				// So only show it while WinWeaver is the foreground app; otherwise wait for owner.Activated.
+				if (!_win.Visible && (owner == null || Form.ActiveForm != null))
 				{
 					_win.ShowOn(owner);
 				}
@@ -648,14 +659,17 @@ namespace WinWeaver
 				Relayout();
 				SetShowing(true);
 			}
-			_lastTick = DateTime.Now;
+			_lastTick = Anim.Now;
+			// the idle toast ticks at 200 ms; without this the first frame of the new animation came that late
+			_tick.Interval = 16;
 			_tick.Start();
 		}
 
 		public void Dismiss()
 		{
 			_visTarget = 0f;
-			_lastTick = DateTime.Now;
+			_lastTick = Anim.Now;
+			_tick.Interval = 16;
 			_tick.Start();
 		}
 
@@ -673,9 +687,11 @@ namespace WinWeaver
 
 		private void Step()
 		{
+			double tnow = Anim.Now;
+			// capped: a late frame (busy UI thread) must not finish the slide/fade in one jump
+			float dt = Math.Min(50f, (float)(tnow - _lastTick));
+			_lastTick = tnow;
 			DateTime now = DateTime.Now;
-			float dt = (float)(now - _lastTick).TotalMilliseconds;
-			_lastTick = now;
 			if (_vis != _visTarget)
 			{
 				float d = Anim.Enabled ? (dt / 220f) : 1f;

@@ -42,20 +42,64 @@ namespace WinWeaver
 
 		protected override void OnMouseEnter(EventArgs e)
 		{
-			if (HoverFx)
+			if (HoverFx && !Page.Scrolling)
 			{
 				SetHot(hot: true);
 			}
 			base.OnMouseEnter(e);
 		}
 
+		// the pointer entered while the page was scrolling: light up on the first real mouse move
+		protected override void OnMouseMove(MouseEventArgs e)
+		{
+			if (HoverFx && !Hot && !Page.Scrolling)
+			{
+				SetHot(hot: true);
+			}
+			base.OnMouseMove(e);
+		}
+
 		protected override void OnMouseLeave(EventArgs e)
 		{
-			if (HoverFx && !base.ClientRectangle.Contains(PointToClient(Cursor.Position)))
+			LeaveCheck();
+			base.OnMouseLeave(e);
+		}
+
+		private void LeaveCheck()
+		{
+			if (HoverFx && Hot && !base.IsDisposed && !base.ClientRectangle.Contains(PointToClient(Cursor.Position)))
 			{
 				SetHot(hot: false);
 			}
-			base.OnMouseLeave(e);
+		}
+
+		// the card already got MouseLeave when the pointer moved onto a child (button, toggle); if the pointer
+		// then leaves the card straight from that child the card never hears about it and stayed lit
+		protected override void OnControlAdded(ControlEventArgs e)
+		{
+			e.Control.MouseLeave += ChildLeave;
+			base.OnControlAdded(e);
+		}
+
+		protected override void OnControlRemoved(ControlEventArgs e)
+		{
+			e.Control.MouseLeave -= ChildLeave;
+			base.OnControlRemoved(e);
+		}
+
+		private void ChildLeave(object sender, EventArgs e)
+		{
+			LeaveCheck();
+		}
+
+		protected override void OnVisibleChanged(EventArgs e)
+		{
+			if (!base.Visible && Hot)
+			{
+				Hot = false;
+				HotT.Snap(0f);
+			}
+			base.OnVisibleChanged(e);
 		}
 
 		protected override void OnPaint(PaintEventArgs e)

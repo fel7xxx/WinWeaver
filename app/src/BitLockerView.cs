@@ -94,10 +94,10 @@ namespace WinWeaver
 			{
 				Poll();
 			};
-			_shine = new Timer { Interval = 30 };
+			_shine = new Timer { Interval = 33 };
 			_shine.Tick += delegate
 			{
-				_phase = (_phase + 0.012f) % 1f;
+				_phase = (float)(Anim.Now % 2500.0 / 2500.0);
 				Invalidate();
 			};
 		}

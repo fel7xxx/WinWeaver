@@ -143,14 +143,10 @@ namespace WinWeaver
 			_dnsList.Add(new Dns { Idx = 2, Name = "Google", Ip = "8.8.8.8", Tag = "стабильный и надёжный" });
 			_dnsList.Add(new Dns { Idx = 3, Name = "Quad9", Ip = "9.9.9.9", Tag = "блокирует опасные сайты" });
 			_dnsList.Add(new Dns { Idx = 4, Name = "AdGuard", Ip = "94.140.14.14", Tag = "режет рекламу и трекеры" });
-			_anim = new Timer { Interval = 40 };
+			_anim = new Timer { Interval = 33 };
 			_anim.Tick += delegate
 			{
-				_phase += 0.045f;
-				if (_phase > 1f)
-				{
-					_phase -= 1f;
-				}
+				_phase = (float)(Anim.Now % 890.0 / 890.0);
 				Invalidate();
 			};
 			_next = new Timer { Interval = 280 };
@@ -796,7 +792,7 @@ namespace WinWeaver
 			}
 			if (!string.IsNullOrEmpty(hint))
 			{
-				int vw = Theme.Measure(value, Theme.F(11.5f, semi: true)).Width;
+				int vw = Theme.Measure(value, Theme.FC(11.5f, semi: true)).Width;
 				int hx = x0 + vw + Theme.S(6f);
 				if (hx < r.Right - Theme.S(30f))
 				{

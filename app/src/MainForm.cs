@@ -244,7 +244,9 @@ namespace WinWeaver
 		protected override void OnShown(EventArgs e)
 		{
 			base.OnShown(e);
-			if (!(_host.Worker.Engine is FakeEngine) || Environment.GetEnvironmentVariable("WW_LAG") == "1")
+			// the freeze log is a developer tool: only with WW_LAG=1, never for normal users
+			Lag.RemoveOldDesktopLog();
+			if (Environment.GetEnvironmentVariable("WW_LAG") == "1")
 			{
 				Lag.Start();
 			}
@@ -902,7 +904,7 @@ namespace WinWeaver
 					_hero.PlayShine();
 				}
 			};
-			home.Add(new SectionLabel("Автонастройка — выбери уровень"));
+			home.Add(new SectionLabel("Автонастройка — выбери уровень") { Hint = "Любое изменение можно откатить" });
 			LevelCard basic = new LevelCard("light", Glyph.Lock, "Базовая", "Приватность без удаления программ", new string[3] { "Без телеметрии, Copilot, рекламы и Bing", "Запрет автошифрования BitLocker", "Обои и название WeavOS" }, recommended: false);
 			LevelCard optimal = new LevelCard("optimal", "\ue735", "Оптимальная", "Чистая и быстрая Windows на каждый день", new string[3] { "Всё из базовой + точка восстановления", "Без Edge, OneDrive и мусора — браузер на выбор", "Быстрый отклик и FPS без риска для работы" }, recommended: true);
 			LevelCard gamer = new LevelCard("gamer", Glyph.Game, "Максимальная", "Максимум FPS, античиты работают", new string[3] { "Всё из оптимальной + максимум для игр", "Максимальная схема питания, HAGS, приоритет и точный таймер для игр", "Жертвует удобствами: поиском, анимациями, гибернацией" }, recommended: false) { Caution = "Не рекомендуется" };

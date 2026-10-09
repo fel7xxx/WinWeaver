@@ -106,6 +106,22 @@ namespace WinWeaver
 			return new Font(semi ? FamilySemi : Family, size, st, GraphicsUnit.Point);
 		}
 
+		private static readonly System.Collections.Generic.Dictionary<string, Font> _fc = new System.Collections.Generic.Dictionary<string, Font>();
+
+		// shared font for paint code: never dispose it. Theme.F() in OnPaint created a new GDI font on every
+		// frame and left it to the finalizer (GDI handle growth while animating)
+		public static Font FC(float size, bool semi = false, FontStyle st = FontStyle.Regular)
+		{
+			string k = size.ToString(System.Globalization.CultureInfo.InvariantCulture) + (semi ? "s" : "r") + (int)st;
+			Font f;
+			if (!_fc.TryGetValue(k, out f))
+			{
+				f = F(size, semi, st);
+				_fc[k] = f;
+			}
+			return f;
+		}
+
 		public static void Init(float dpiScale)
 		{
 			Scale = ((dpiScale <= 0f) ? 1f : dpiScale);
@@ -325,6 +341,7 @@ namespace WinWeaver
 						g.SetClip(gp, CombineMode.Intersect);
 						g.FillRectangle(sb, sr);
 						g.Clip = old;
+						old.Dispose();
 					}
 				}
 			}
@@ -358,6 +375,7 @@ namespace WinWeaver
 					g.SetClip(fp, CombineMode.Intersect);
 					g.FillRectangle(sb, sx, fr.Y, sw, fr.Height);
 					g.Clip = old;
+					old.Dispose();
 				}
 			}
 		}

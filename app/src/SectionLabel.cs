@@ -16,6 +16,9 @@ namespace WinWeaver
 {
 	internal class SectionLabel : Control, IBlock
 	{
+		// optional muted note on the right side of the line
+		public string Hint;
+
 		public SectionLabel(string t)
 		{
 			Text = t;
@@ -38,11 +41,21 @@ namespace WinWeaver
 			TextRenderer.DrawText(graphics, Text.ToUpperInvariant(), Theme.H2, new Point(Theme.S(4f), (base.Height - size.Height) / 2), Theme.Sub, TextFormatFlags.NoPrefix);
 			int num = size.Width + Theme.S(16f);
 			int y = base.Height / 2;
-			if (num < base.Width)
+			int right = base.Width;
+			if (!string.IsNullOrEmpty(Hint))
 			{
-				using (LinearGradientBrush brush = new LinearGradientBrush(new Rectangle(num, y, Math.Max(2, base.Width - num), 2), Theme.Border, Color.FromArgb(0, Theme.Border), 0f))
+				Size hs = Theme.Measure(Hint, Theme.Tiny);
+				if (num + hs.Width + Theme.S(40f) < base.Width)
 				{
-					graphics.FillRectangle(brush, num, y, base.Width - num, 1);
+					TextRenderer.DrawText(graphics, Hint, Theme.Tiny, new Point(base.Width - hs.Width - Theme.S(4f), (base.Height - hs.Height) / 2), Theme.Dim, TextFormatFlags.NoPrefix);
+					right = base.Width - hs.Width - Theme.S(16f);
+				}
+			}
+			if (num < right)
+			{
+				using (LinearGradientBrush brush = new LinearGradientBrush(new Rectangle(num, y, Math.Max(2, right - num), 2), Theme.Border, Color.FromArgb(0, Theme.Border), 0f))
+				{
+					graphics.FillRectangle(brush, num, y, right - num, 1);
 				}
 			}
 		}

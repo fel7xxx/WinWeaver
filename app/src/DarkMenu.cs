@@ -398,7 +398,9 @@ namespace WinWeaver
 			}
 			using (GraphicsPath p = Theme.Round(new RectangleF(0f, 0f, d.Width, d.Height), Theme.S(10f)))
 			{
+				Region old = d.Region;
 				d.Region = new Region(p);
+				old?.Dispose();
 			}
 		}
 

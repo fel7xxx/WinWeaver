@@ -192,6 +192,7 @@ namespace WinWeaver
 						g.FillRectangle(ab, r.X, r.Y, Theme.S(3f), r.Height);
 					}
 					g.Clip = old;
+					old.Dispose();
 				}
 				Rectangle tr = new Rectangle(r.X + NotePadX + Theme.S(3f), r.Y + NotePadY, r.Width - NotePadX * 2 - Theme.S(3f), r.Height - NotePadY * 2);
 				TextRenderer.DrawText(g, h.NoteText, Theme.Body, tr, Color.FromArgb(214, 214, 222), TextFormatFlags.NoPrefix | TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);

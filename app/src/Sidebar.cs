@@ -249,7 +249,6 @@ namespace WinWeaver
 			if (rh != _rbHot)
 			{
 				_rbHot = rh;
-				Cursor = rh ? Cursors.Hand : Cursors.Default;
 				Invalidate();
 			}
 			bool uh = !_upR.IsEmpty && _upR.Contains(e.Location);
@@ -264,7 +263,6 @@ namespace WinWeaver
 			if (ch != _credHot)
 			{
 				_credHot = ch;
-				Cursor = ch ? Cursors.Hand : Cursors.Default;
 				Invalidate();
 			}
 			if (num != _hot)
@@ -280,8 +278,13 @@ namespace WinWeaver
 				{
 					_hotA.Target = 0f;
 				}
-				Cursor = ((num >= 0 || _credHot || _rbHot || _upHot || _heartHot) ? Cursors.Hand : Cursors.Default);
 				Invalidate();
+			}
+			// one place for the cursor: the update banner and the heart never switched it to the hand before
+			Cursor want = (num >= 0 || _credHot || _rbHot || _upHot || _heartHot) ? Cursors.Hand : Cursors.Default;
+			if (Cursor != want)
+			{
+				Cursor = want;
 			}
 			base.OnMouseMove(e);
 		}

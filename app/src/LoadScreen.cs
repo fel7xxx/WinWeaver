@@ -22,7 +22,7 @@ namespace WinWeaver
 
 		private readonly DateTime _start = DateTime.Now;
 
-		private DateTime _last = DateTime.Now;
+		private double _last = Anim.Now;
 
 		private float _ang;
 
@@ -156,8 +156,10 @@ namespace WinWeaver
 
 		private void Step()
 		{
-			DateTime now = DateTime.Now;
-			float dt = (float)(now - _last).TotalMilliseconds;
+			double now = Anim.Now;
+			// capped: while the pages are being built a frame can come 0.5 s late, and the closing fade
+			// then ended in one jump instead of fading
+			float dt = Math.Min(40f, (float)(now - _last));
 			_last = now;
 			_ang = (_ang + dt * 0.4f) % 1800f;
 			if (_canSkip && _skipA < 1f)

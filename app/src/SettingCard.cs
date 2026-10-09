@@ -420,14 +420,15 @@ namespace WinWeaver
 				bool want = !Toggle.On;
 				Toggle.On = want;
 				Toggle.Busy = true;
+				Exception fail = null;
 				_host.Worker.Run(delegate(IEngine e)
 				{
-					_set(e, want);
-					return _get(e);
+					return SetThenGet(e, want, out fail);
 				}, delegate(object r)
 				{
 					Toggle.Busy = false;
 					Apply(r);
+					ReportFail(fail);
 					_host.End(quick: true);
 					Relayout();
 				});
@@ -442,17 +443,53 @@ namespace WinWeaver
 				return;
 			}
 			Seg.Busy = true;
+			Exception fail = null;
 			_host.Worker.Run(delegate(IEngine e)
 			{
-				_set(e, i);
-				return _get(e);
+				return SetThenGet(e, i, out fail);
 			}, delegate(object r)
 			{
 				Seg.Busy = false;
 				Apply(r);
+				ReportFail(fail);
 				_host.End(quick: true);
 				Relayout();
 			});
+		}
+
+		// a failed setter used to skip the read-back: the control then showed "off"/nothing instead of
+		// the real state. Now the state is always read back and the error is shown separately
+		private object SetThenGet(IEngine e, object v, out Exception fail)
+		{
+			fail = null;
+			try
+			{
+				_set(e, v);
+			}
+			catch (Exception ex)
+			{
+				fail = ex;
+			}
+			try
+			{
+				return _get(e);
+			}
+			catch (Exception ex2)
+			{
+				if (fail == null)
+				{
+					fail = ex2;
+				}
+				return null;
+			}
+		}
+
+		private void ReportFail(Exception fail)
+		{
+			if (fail != null)
+			{
+				Program.Main0?.Status("err", "Ошибка: " + fail.Message);
+			}
 		}
 
 		public override object Fetch(IEngine e)
@@ -589,7 +626,7 @@ namespace WinWeaver
 		private int RecBoxH(int iw)
 		{
 			int tw = iw - Theme.S(28f) - Theme.S(30f);
-			int th = Theme.Measure("Рекомендация", Theme.F(9f, semi: true)).Height;
+			int th = Theme.Measure("Рекомендация", Theme.FC(9f, semi: true)).Height;
 			int bh = string.IsNullOrEmpty(Why) ? 0 : (Theme.S(3f) + Theme.Measure(Why, Theme.Small, tw, wrap: true).Height);
 			return th + bh + Theme.S(24f);
 		}
@@ -793,7 +830,7 @@ namespace WinWeaver
 			{
 				g.FillEllipse(ib, ix + Theme.S(4.5f), iy + Theme.S(4.5f), Theme.S(5f), Theme.S(5f));
 			}
-			Font hf = Theme.F(9f, semi: true);
+			Font hf = Theme.FC(9f, semi: true);
 			int tx = box.X + Theme.S(42f);
 			int tw = box.Width - Theme.S(28f) - Theme.S(30f);
 			string head = (Rec == null) ? "Рекомендация: на твой выбор" : ("Рекомендация: " + RecValueText(lower: true));

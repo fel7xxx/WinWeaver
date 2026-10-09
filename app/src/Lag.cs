@@ -18,7 +18,7 @@ namespace WinWeaver
 {
 	// Freeze log: notices every moment the UI thread was stuck for more than 70 ms and writes what ran
 	// during it (named sections with their times; the rest is Windows painting/layout) to
-	// "WinWeaver_lag.txt" on the Desktop. Used to find the real cause of stutters on the user's PC.
+	// "WinWeaver_lag.txt" in the data folder (only with WW_LAG=1). Used to find the real cause of stutters on the user's PC.
 	internal static class Lag
 	{
 		private static readonly Stopwatch _clock = Stopwatch.StartNew();
@@ -39,6 +39,22 @@ namespace WinWeaver
 
 		public static string Context = "";
 
+		// version 1.0.0 wrote the log to the Desktop on every start: remove that leftover
+		public static void RemoveOldDesktopLog()
+		{
+			try
+			{
+				string old = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "WinWeaver_lag.txt");
+				if (File.Exists(old))
+				{
+					File.Delete(old);
+				}
+			}
+			catch
+			{
+			}
+		}
+
 		public static void Start()
 		{
 			if (On)
@@ -48,7 +64,8 @@ namespace WinWeaver
 			On = true;
 			try
 			{
-				_path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "WinWeaver_lag.txt");
+				Directory.CreateDirectory(Brand.DataDir);
+				_path = Path.Combine(Brand.DataDir, "WinWeaver_lag.txt");
 				File.WriteAllText(_path, "WinWeaver — журнал подвисаний (" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + ")\r\n" + Environment.OSVersion + ", ядер: " + Environment.ProcessorCount + "\r\nФормат: время, длительность фриза, что выполнялось (мс). «прочее» = отрисовка/раскладка окна Windows.\r\n\r\n", Encoding.UTF8);
 			}
 			catch (Exception ex)

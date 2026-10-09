@@ -2621,3 +2621,5 @@ ipconfig /renew — связь пропадёт на пару секунд	ipcon
 …и ещё {0}	…and {0} more
 базы обновлены {0}	definitions updated {0}
 осталось ≈ {0}	≈ {0} left
+Уровень: 	Level: 
+Любое изменение можно откатить	Any change can be rolled back

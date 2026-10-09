@@ -28,7 +28,7 @@ namespace WinWeaver
 
 		protected override void OnMouseWheel(MouseEventArgs e)
 		{
-			Page.SmoothBy(-e.Delta);
+			Page.SmoothBy(-Page.WheelPx(e.Delta));
 			if (e is HandledMouseEventArgs)
 			{
 				((HandledMouseEventArgs)e).Handled = true;

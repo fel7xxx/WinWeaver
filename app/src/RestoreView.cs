@@ -483,7 +483,10 @@ namespace WinWeaver
 				else
 				{
 					g.DrawLine(cp, cx, my - 6f * u, cx, my + 2f * u);
-					g.FillEllipse(new SolidBrush(tint), cx - 1.4f * u, my + 5f * u, 2.8f * u, 2.8f * u);
+					using (SolidBrush db = new SolidBrush(tint))
+					{
+						g.FillEllipse(db, cx - 1.4f * u, my + 5f * u, 2.8f * u, 2.8f * u);
+					}
 				}
 			}
 		}

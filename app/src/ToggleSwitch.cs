@@ -20,9 +20,10 @@ namespace WinWeaver
 
 		private bool _busy;
 
-		private float _p;
+		// knob position 0..1, eased on the shared animation timer (time based, respects "no animations")
+		private readonly Tween _t;
 
-		private readonly Timer _t;
+		private float _p => _t.Value;
 
 		public bool Busy
 		{
@@ -32,6 +33,10 @@ namespace WinWeaver
 			}
 			set
 			{
+				if (_busy == value)
+				{
+					return;
+				}
 				_busy = value;
 				base.Enabled = !value;
 				Invalidate();
@@ -49,7 +54,7 @@ namespace WinWeaver
 				if (_on != value)
 				{
 					_on = value;
-					_t.Start();
+					_t.Target = value ? 1f : 0f;
 				}
 			}
 		}
@@ -62,25 +67,7 @@ namespace WinWeaver
 			BackColor = Color.Transparent;
 			Cursor = Cursors.Hand;
 			base.Size = new Size(Theme.S(50f), Theme.S(28f));
-			_t = new Timer
-			{
-				Interval = 15
-			};
-			_t.Tick += delegate
-			{
-				float num = (_on ? 1f : 0f);
-				float num2 = 0.18f;
-				if (Math.Abs(_p - num) <= num2)
-				{
-					_p = num;
-					_t.Stop();
-				}
-				else
-				{
-					_p += ((_p < num) ? num2 : (0f - num2));
-				}
-				Invalidate();
-			};
+			_t = new Tween(this, 0f).Timed(160);
 		}
 
 		public void SimClick()
@@ -91,13 +78,13 @@ namespace WinWeaver
 		public void SetOnNoAnim(bool v)
 		{
 			_on = v;
-			_p = (v ? 1f : 0f);
+			_t.Snap(v ? 1f : 0f);
 			Invalidate();
 		}
 
 		protected override void OnClick(EventArgs e)
 		{
-			if (!_busy)
+			if (!_busy && base.Enabled)
 			{
 				base.OnClick(e);
 				this.Toggled?.Invoke(this, EventArgs.Empty);
@@ -126,7 +113,7 @@ namespace WinWeaver
 			RectangleF r2 = new RectangleF(x, r.Y + (float)Theme.S(3f), num, num);
 			using (GraphicsPath path2 = Theme.Round(r2, num / 2f))
 			{
-				Theme.FillGradient(graphics, path2, r2, _busy ? Theme.Dim : Theme.Mix(Color.FromArgb(225, 225, 230), Theme.OnSilver, (_p < 0.5f) ? _p : 0f), _busy ? Theme.Dim : Theme.Mix(Color.FromArgb(188, 188, 196), Color.FromArgb(44, 44, 52), _p));
+				Theme.FillGradient(graphics, path2, r2, _busy ? Theme.Dim : Color.FromArgb(225, 225, 230), _busy ? Theme.Dim : Theme.Mix(Color.FromArgb(188, 188, 196), Color.FromArgb(44, 44, 52), _p));
 			}
 		}
 	}

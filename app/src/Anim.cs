@@ -16,14 +16,14 @@ using System.Windows.Forms;
 
 namespace WinWeaver
 {
-	// One shared 60 fps UI timer drives every animation in the program (time-based runs and hover tweens).
+	// One shared UI clock (vsync-paced on Windows, 10 ms timer elsewhere) drives every animation in the program (time-based runs and hover tweens).
 	internal static class Anim
 	{
 		private class Run
 		{
 			public Control Owner;
 			public object Key;
-			public DateTime Start;
+			public double Start;
 			public int Ms;
 			public Action<float> Step;
 			public Action Done;
@@ -36,6 +36,185 @@ namespace WinWeaver
 		private static readonly List<Tween> _tweens = new List<Tween>();
 
 		private static Timer _timer;
+
+		// Monotonic high-resolution clock (QPC) for all animation timing. DateTime.UtcNow only advances in
+		// ~15.6 ms steps on many PCs, so with a 10 ms timer some frames saw dt = 0 and the next one a double
+		// step — that uneven motion was the visible micro-stutter in scrolling, hovers and progress bars.
+		private static readonly System.Diagnostics.Stopwatch _clock = System.Diagnostics.Stopwatch.StartNew();
+
+		private static readonly double _tickMs = 1000.0 / System.Diagnostics.Stopwatch.Frequency;
+
+		public static double Now => _clock.ElapsedTicks * _tickMs;
+
+		// per-frame callbacks (smooth scrolling); return false to unsubscribe
+		private static readonly List<Func<bool>> _frames = new List<Func<bool>>();
+
+		public static void Frame(Func<bool> f)
+		{
+			if (!_frames.Contains(f))
+			{
+				_frames.Add(f);
+			}
+			Ensure();
+		}
+
+		// --- vsync pacing (Windows with DWM): a background thread waits for the next composition (DwmFlush)
+		// and posts one frame to the UI thread, so animations step exactly once per monitor refresh
+		// (60/120/144/240 Hz) instead of drifting against it with a 10 ms timer.
+		[System.Runtime.InteropServices.DllImport("dwmapi.dll")]
+		private static extern int DwmFlush();
+
+		[System.Runtime.InteropServices.DllImport("dwmapi.dll")]
+		private static extern int DwmIsCompositionEnabled(out bool enabled);
+
+		private static System.Threading.SynchronizationContext _ui;
+
+		private static System.Threading.Thread _vsync;
+
+		private static readonly System.Threading.AutoResetEvent _wake = new System.Threading.AutoResetEvent(false);
+
+		private static volatile bool _vsActive;
+
+		private static int _vsPending;
+
+		private static bool _vsBroken;
+
+		private static bool VsyncAvailable()
+		{
+			// opt-in only (WW_VSYNC=1): on some PCs DwmFlush returned early or late and frames came at ~30 fps,
+			// which made scrolling feel sluggish. The default is the 10 ms high-resolution timer.
+			if (_vsBroken || !Win.IsWindows || Environment.GetEnvironmentVariable("WW_VSYNC") != "1")
+			{
+				return false;
+			}
+			try
+			{
+				bool on;
+				return DwmIsCompositionEnabled(out on) == 0 && on;
+			}
+			catch
+			{
+				_vsBroken = true;
+				return false;
+			}
+		}
+
+		private static bool StartVsync()
+		{
+			System.Threading.SynchronizationContext ctx = System.Threading.SynchronizationContext.Current;
+			if (!(ctx is WindowsFormsSynchronizationContext) || !VsyncAvailable())
+			{
+				return false;
+			}
+			_ui = ctx;
+			if (_vsync == null)
+			{
+				_vsync = new System.Threading.Thread(VsyncLoop) { IsBackground = true, Name = "WW vsync", Priority = System.Threading.ThreadPriority.AboveNormal };
+				_vsync.Start();
+			}
+			_vsActive = true;
+			_wake.Set();
+			return true;
+		}
+
+		private static void VsyncLoop()
+		{
+			double last = Now;
+			while (true)
+			{
+				if (!_vsActive)
+				{
+					_wake.WaitOne();
+					last = Now;
+					continue;
+				}
+				try
+				{
+					if (DwmFlush() != 0)
+					{
+						System.Threading.Thread.Sleep(8);
+					}
+				}
+				catch
+				{
+					_vsBroken = true;
+					_vsActive = false;
+					PostFallback();
+					continue;
+				}
+				// DwmFlush returns at once when the window is minimized / composition paused: don't spin
+				double now = Now;
+				if (now - last < 3.0)
+				{
+					System.Threading.Thread.Sleep(6);
+					now = Now;
+				}
+				last = now;
+				// at most one frame in flight: a slow frame is skipped instead of queueing up behind input
+				if (System.Threading.Interlocked.CompareExchange(ref _vsPending, 1, 0) == 0)
+				{
+					try
+					{
+						_ui.Post(VsyncFrame, null);
+					}
+					catch
+					{
+						_vsPending = 0;
+					}
+				}
+			}
+		}
+
+		private static void PostFallback()
+		{
+			try
+			{
+				_ui?.Post(delegate
+				{
+					Ensure();
+				}, null);
+			}
+			catch
+			{
+			}
+		}
+
+		[System.Runtime.InteropServices.DllImport("user32.dll")]
+		private static extern bool RedrawWindow(IntPtr hWnd, IntPtr rect, IntPtr rgn, uint flags);
+
+		private static void VsyncFrame(object state)
+		{
+			_vsPending = 0;
+			if (!_vsActive)
+			{
+				return;
+			}
+			Tick(null, EventArgs.Empty);
+			// paint what this frame invalidated right away (RDW_UPDATENOW | RDW_ALLCHILDREN): posted frames
+			// outrank WM_PAINT in the message queue, so on a slow frame the repaint could otherwise lag a frame behind
+			try
+			{
+				foreach (Form f in Application.OpenForms)
+				{
+					if (f.IsHandleCreated && f.Visible && f.WindowState != FormWindowState.Minimized)
+					{
+						RedrawWindow(f.Handle, IntPtr.Zero, IntPtr.Zero, 0x0100 | 0x0080);
+					}
+				}
+			}
+			catch
+			{
+			}
+		}
+
+		private static bool Busy => _runs.Count > 0 || _tweens.Count > 0 || _frames.Count > 0;
+
+		private static void Stop()
+		{
+			_vsActive = false;
+			_timer?.Stop();
+			HiRes(false);
+		}
 
 		[System.Runtime.InteropServices.DllImport("winmm.dll")]
 		private static extern uint timeBeginPeriod(uint p);
@@ -70,6 +249,14 @@ namespace WinWeaver
 
 		private static void Ensure()
 		{
+			if (_vsActive)
+			{
+				return;
+			}
+			if (StartVsync())
+			{
+				return;
+			}
 			if (_timer == null)
 			{
 				_timer = new Timer { Interval = 10 };
@@ -113,7 +300,7 @@ namespace WinWeaver
 				done?.Invoke();
 				return;
 			}
-			_runs.Add(new Run { Owner = owner, Key = key, Start = DateTime.UtcNow, Ms = ms, Step = step, Done = done });
+			_runs.Add(new Run { Owner = owner, Key = key, Start = Now, Ms = ms, Step = step, Done = done });
 			step(0f);
 			Ensure();
 		}
@@ -147,7 +334,7 @@ namespace WinWeaver
 
 		private static void TickCore()
 		{
-			DateTime now = DateTime.UtcNow;
+			double now = Now;
 			Run[] runs = _runs.ToArray();
 			foreach (Run r in runs)
 			{
@@ -156,7 +343,7 @@ namespace WinWeaver
 					_runs.Remove(r);
 					continue;
 				}
-				float t = (float)((now - r.Start).TotalMilliseconds / (double)r.Ms);
+				float t = (float)((now - r.Start) / (double)r.Ms);
 				if (t >= 1f)
 				{
 					_runs.Remove(r);
@@ -189,10 +376,29 @@ namespace WinWeaver
 					_tweens.Remove(tw);
 				}
 			}
-			if (_runs.Count == 0 && _tweens.Count == 0)
+			if (_frames.Count > 0)
 			{
-				_timer.Stop();
-				HiRes(false);
+				Func<bool>[] fr = _frames.ToArray();
+				foreach (Func<bool> f in fr)
+				{
+					bool more;
+					try
+					{
+						more = f();
+					}
+					catch
+					{
+						more = false;
+					}
+					if (!more)
+					{
+						_frames.Remove(f);
+					}
+				}
+			}
+			if (!Busy)
+			{
+				Stop();
 			}
 		}
 	}
@@ -211,9 +417,9 @@ namespace WinWeaver
 
 		private float _from;
 
-		private DateTime _t0;
+		private double _t0;
 
-		private DateTime _last;
+		private double _last;
 
 		private bool _running;
 
@@ -273,7 +479,7 @@ namespace WinWeaver
 					Repaint();
 					return;
 				}
-				DateTime now = DateTime.UtcNow;
+				double now = Anim.Now;
 				_from = Value;
 				_t0 = now;
 				if (!_running)
@@ -289,6 +495,7 @@ namespace WinWeaver
 		{
 			_target = v;
 			Value = v;
+			_from = v;
 			_running = false;
 		}
 
@@ -299,10 +506,16 @@ namespace WinWeaver
 				_running = false;
 				return false;
 			}
-			DateTime now = DateTime.UtcNow;
+			// snapped (or finished) while still in the shared timer list: a timed tween would otherwise keep
+			// easing from its old start value and overwrite the snapped one
+			if (!_running)
+			{
+				return false;
+			}
+			double now = Anim.Now;
 			if (_ms > 0)
 			{
-				float t = (float)((now - _t0).TotalMilliseconds / _ms);
+				float t = (float)((now - _t0) / _ms);
 				if (t >= 1f)
 				{
 					Value = _target;
@@ -314,7 +527,7 @@ namespace WinWeaver
 				Repaint();
 				return true;
 			}
-			double dt = Math.Min(100.0, Math.Max(1.0, (now - _last).TotalMilliseconds));
+			double dt = Math.Min(100.0, Math.Max(0.5, now - _last));
 			_last = now;
 			float d = _target - Value;
 			float eps = Math.Max(0.002f, Math.Abs(_target) * 0.001f);

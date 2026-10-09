@@ -156,7 +156,8 @@ namespace WinWeaver
 			}
 			if (o is Hashtable hashtable)
 			{
-				Hashtable hashtable2 = new Hashtable();
+				// PowerShell hashtables are case-insensitive; keep that, so a key read as "Name" finds "name"
+				Hashtable hashtable2 = new Hashtable(StringComparer.OrdinalIgnoreCase);
 				{
 					foreach (DictionaryEntry item in hashtable)
 					{

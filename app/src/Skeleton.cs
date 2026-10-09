@@ -22,7 +22,8 @@ namespace WinWeaver
 
 		private static Timer _t;
 
-		public static float Phase => (float)(Environment.TickCount % 1600) / 1600f;
+		// monotonic high-resolution clock (TickCount went negative after ~25 days and stepped in 15.6 ms)
+		public static float Phase => (float)(Anim.Now % 1600.0 / 1600.0);
 
 		// repaint c at ~30 fps while it shows placeholders
 		public static void Track(Control c, bool loading)
@@ -115,10 +116,13 @@ namespace WinWeaver
 					cb.Positions = new float[3] { 0f, 0.5f, 1f };
 					cb.Colors = new Color[3] { Color.FromArgb(0, 255, 255, 255), Color.FromArgb(22, 255, 255, 255), Color.FromArgb(0, 255, 255, 255) };
 					lb.InterpolationColors = cb;
-					Region old = g.Clip;
-					g.SetClip(p, CombineMode.Intersect);
-					g.FillRectangle(lb, wr);
-					g.Clip = old;
+					// g.Clip hands out a new Region every time: dispose it (it leaked ~30 times a second per bar)
+					using (Region old = g.Clip)
+					{
+						g.SetClip(p, CombineMode.Intersect);
+						g.FillRectangle(lb, wr);
+						g.Clip = old;
+					}
 				}
 			}
 		}

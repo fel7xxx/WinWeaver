@@ -157,7 +157,7 @@ namespace WinWeaver
 				}
 			}
 			int num3 = num + num2 + Theme.S(18f);
-			TextRenderer.DrawText(graphics, (_mode == "def-off-safe") ? "WinWeaver: отключение Defender" : "WinWeaver: возврат Defender", Theme.F(12f, semi: true), new Point(num3, num), Theme.Text);
+			TextRenderer.DrawText(graphics, (_mode == "def-off-safe") ? "WinWeaver: отключение Defender" : "WinWeaver: возврат Defender", Theme.FC(12f, semi: true), new Point(num3, num), Theme.Text);
 			TextRenderer.DrawText(graphics, _line, Theme.Body, new Rectangle(num3, num + Theme.S(32f), base.Width - num3 - num, Theme.S(80f)), Theme.Sub, TextFormatFlags.WordBreak);
 		}
 	}

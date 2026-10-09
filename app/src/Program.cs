@@ -141,7 +141,12 @@ namespace WinWeaver
 								}
 								catch
 								{
-									break;
+									// window handle not created yet (second start during loading) - keep listening;
+									// stop only once the main window is gone for good
+									if (f.IsDisposed)
+									{
+										break;
+									}
 								}
 							}
 						});

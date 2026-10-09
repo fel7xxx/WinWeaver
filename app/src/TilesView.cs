@@ -64,11 +64,7 @@ namespace WinWeaver
 			_spin = new Timer { Interval = 33 };
 			_spin.Tick += delegate
 			{
-				_phase += 0.025f;
-				if (_phase > 1f)
-				{
-					_phase -= 1f;
-				}
+				_phase = (float)(Anim.Now % 1320.0 / 1320.0);
 				bool running = false;
 				bool waiting = false;
 				foreach (Tile t in Items)
