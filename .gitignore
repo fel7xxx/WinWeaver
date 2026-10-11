@@ -1,7 +1,8 @@
 # build output
-app/bin/
-app/obj/
-app/out/
+bin/
+obj/
+publish/
+artifacts/
 out/
 *.user
 .vs/
@@ -9,4 +10,3 @@ out/
 *.log
 Thumbs.db
 desktop.ini
-tools/wallpapers/*.ttf

@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    WinWeaver на Avalonia.
+    net48  — основная сборка для Windows (PowerShell 5.1 хостится в процессе, как и раньше).
+    net8.0 — кроссплатформенная сборка для разработки/скриншотов (только демо-движок /fake).
+  -->
+  <PropertyGroup>
+    <TargetFrameworks>net48;net8.0</TargetFrameworks>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>WinWeaver</AssemblyName>
+    <RootNamespace>WinWeaver</RootNamespace>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationIcon>Resources\app.ico</ApplicationIcon>
+    <ApplicationManifest>Resources\app.manifest</ApplicationManifest>
+    <Version>1.0.1</Version>
+    <FileVersion>1.0.1.0</FileVersion>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <Product>WinWeaver</Product>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <NoWarn>$(NoWarn);CS0168;CS0219;CS0162;CS0649;CS0414;CS0169;CS0067;CS8981;CA1416;NU1701</NoWarn>
+    <SatelliteResourceLanguages>en;ru</SatelliteResourceLanguages>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DefineConstants>$(DefineConstants);PSENGINE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <DefineConstants>$(DefineConstants);HEADLESS</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <!-- Только для режима скриншотов без дисплея (ключ shots) -->
+    <PackageReference Include="Avalonia.Headless" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Skia" Version="11.2.3" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <!-- Только для компиляции: настоящая System.Management.Automation берётся из GAC Windows -->
+    <PackageReference Include="Microsoft.PowerShell.5.1.ReferenceAssemblies" Version="1.0.0" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+    <EmbeddedResource Include="Resources\engine.ps1" LogicalName="engine.ps1" />
+    <EmbeddedResource Include="Resources\winweaver.ico" LogicalName="winweaver.ico" />
+    <EmbeddedResource Include="Resources\hero.jpg" LogicalName="hero.jpg" />
+    <EmbeddedResource Include="Resources\wall*.jpg" LogicalName="%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Resources\logo.png" LogicalName="logo.png" />
+    <EmbeddedResource Include="Resources\br_*.png" LogicalName="%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Resources\lang.en.tsv" LogicalName="lang.en.tsv" WithCulture="false" />
+    <EmbeddedResource Include="Assets\Fonts\font.regular.ttf" LogicalName="font.regular.ttf" />
+    <EmbeddedResource Include="Assets\Fonts\font.semibold.ttf" LogicalName="font.semibold.ttf" />
+  </ItemGroup>
+  <!-- net48 публикуется только под Windows: убираем нативные библиотеки других ОС/архитектур -->
+  <Target Name="TrimForeignNatives" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net48' And '$(RuntimeIdentifier)' != ''">
+    <ItemGroup>
+      <_Foreign Include="$(PublishDir)*.dylib;$(PublishDir)*.so;$(PublishDir)arm\**;$(PublishDir)arm64\**;$(PublishDir)x86\**;$(PublishDir)x64\**;$(PublishDir)musl-x64\**" />
+    </ItemGroup>
+    <Delete Files="@(_Foreign)" />
+    <RemoveDir Directories="$(PublishDir)arm;$(PublishDir)arm64;$(PublishDir)x86;$(PublishDir)x64;$(PublishDir)musl-x64" />
+  </Target>
+</Project>
