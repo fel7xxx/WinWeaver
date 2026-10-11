@@ -16,6 +16,8 @@ if (-not (Undo-FHistItem $entry) -or -not $entry.Done) { throw 'Successful rollb
 $buildDir = Join-Path $root ('artifacts\verify-' + [Guid]::NewGuid().ToString('N'))
 dotnet build (Join-Path $root 'WinWeaver\WinWeaver.csproj') -c Release --nologo "-p:BaseOutputPath=$buildDir\"
 if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
+$extra = Get-ChildItem (Join-Path $buildDir 'Release\net48') -File | Where-Object { $_.Name -ne 'WinWeaver.exe' }
+if ($extra) { throw ('net48 must be a single WinWeaver.exe, found: ' + ($extra.Name -join ', ')) }
 # Exercise production helpers without starting the app or applying system settings.
 $assembly = [Reflection.Assembly]::LoadFrom((Join-Path $buildDir 'Release\net48\WinWeaver.exe'))
 $localization = $assembly.GetType('WinWeaver.L')
@@ -41,13 +43,12 @@ try {
     $copy = $assembly.GetType('WinWeaver.Installer').GetMethod('CopyDependencies', [Reflection.BindingFlags]'Static,NonPublic')
     $copy.Invoke($null, @([string]$source, [string]$target))
     $copy.Invoke($null, @([string]$source, [string]$source))
-    foreach ($name in @('runtime.dll', 'WinWeaver.exe.config', 'WinWeaver.deps.json', 'lang\custom.tsv', 'x64\native.dll')) {
-        if (-not (Test-Path (Join-Path $target $name))) { throw "Missing dependency: $name" }
-    }
-    foreach ($name in @('profile.json', 'tweaker.log')) {
+    if (-not (Test-Path (Join-Path $target 'lang\custom.tsv'))) { throw 'Missing translation: lang\custom.tsv' }
+    # Single-file build: nothing except translations is copied next to the installed exe.
+    foreach ($name in @('runtime.dll', 'WinWeaver.exe.config', 'WinWeaver.deps.json', 'x64\native.dll', 'profile.json', 'tweaker.log')) {
         if (Test-Path (Join-Path $target $name)) { throw "Unexpected user file copied: $name" }
     }
 } finally {
     if (Test-Path $temp) { Remove-Item $temp -Recurse -Force }
 }
-Write-Host 'PASS: PowerShell syntax, rollback failure/success, both target frameworks, release versions, installer copying'
+Write-Host 'PASS: PowerShell syntax, rollback failure/success, both target frameworks, release versions, single-file exe, installer copying'

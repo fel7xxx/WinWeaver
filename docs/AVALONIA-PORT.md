@@ -42,5 +42,5 @@ vsync-поток на `DwmFlush` → таймер кадров диспетче�
   скриншотами всех 12 разделов и 8 диалогов, клики и прокрутка). **На реальной Windows с
   PowerShell-движком запуск не проверялся** — перед релизом прогоните автонастройку и откаты на тестовой машине/ВМ.
 * Значки Segoe Fluent Icons берутся из системы — на Windows 11 они есть, на Linux вместо них пусто.
-* Сборка — папка с exe и библиотеками Avalonia/Skia (~30 МБ), а не один exe, как раньше.
+* Windows-сборка — один `WinWeaver.exe` (~18 МБ): управляемые библиотеки загружаются из ресурсов через `AssemblyResolve`, нативные (`libSkiaSharp`, `libHarfBuzzSharp`, `av_libglesv2`) распаковываются в `%ProgramData%\WinWeaver\runtime\<версия>` и проверяются по SHA-256 (`App/Embedded.cs`, цель `WWEmbedDependencies` в `WinWeaver.csproj`). Файл `.exe.config` с binding redirects больше не используется — версии сборок разрешаются по имени из встроенных ресурсов.
 * Анимации идут от таймера ~60 Гц, а не от DWM vsync.

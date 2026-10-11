@@ -19,7 +19,7 @@ No PowerShell windows or batch files. Every change is recorded in History, and m
 
 ## What's new in 1.0.2
 
-- **New Avalonia-based interface** (Skia) instead of GDI+: smoother animations and scrolling, crisper text on scaled displays.
+- **New Avalonia-based interface** (Skia) instead of GDI+: smoother animations and scrolling, crisper text on scaled displays. It's still a single standalone **WinWeaver.exe** — nothing to install.
 - **New navigation:** a top menu "Home · System · Tools · Settings" and section tabs with counters.
 - **Recommended** — everything WinWeaver suggests for this PC on one page, with an index and a per-section breakdown.
 - **Details panel** for every setting: why it's worth it, who it may not suit, risk, whether a restart is needed and how to roll it back.
@@ -30,15 +30,13 @@ Full list — in [CHANGELOG.md](CHANGELOG.md).
 
 ## Download
 
-1. Open the [latest release](https://github.com/fel7xxx/WinWeaver/releases/latest) and download the **WinWeaver** archive.
-2. Extract it to a separate folder and run **WinWeaver.exe**. Windows will ask for administrator rights — they're needed to change system settings.
+1. Open the [latest release](https://github.com/fel7xxx/WinWeaver/releases/latest) and download **WinWeaver.exe**.
+2. Run it. Windows will ask for administrator rights — they're needed to change system settings.
 3. On first launch pick the language and how to run it: **install** to Program Files (Start menu shortcut, removal via "Installed apps") or **run without installing**.
 
-> **Starting with 1.0.2 the program is a folder with WinWeaver.exe and libraries** (~30 MB), not a single exe. Run it only from the extracted folder.
->
-> **Updating from 1.0.x:** close WinWeaver and run the new version from the extracted folder — it will offer to update the installed copy. Settings and History (`C:\ProgramData\WinWeaver`) are kept.
+> **Updating from 1.0.x:** close WinWeaver and run the new WinWeaver.exe — it will offer to update the installed copy. Settings and History (`C:\ProgramData\WinWeaver`) are kept.
 
-> **SmartScreen.** The program isn't signed with a paid certificate, so Windows may show "Windows protected your PC". Click **More info → Run anyway**. You can verify the download with the SHA-256 from the release.
+> **SmartScreen.** The program isn't signed with a paid certificate, so Windows may show "Windows protected your PC". Click **More info → Run anyway**. You can verify the file with the SHA-256 from the release (`WinWeaver.exe.sha256`).
 
 **Requirements:** Windows 11 (22H2 – 26H2), administrator rights. .NET Framework 4.8 is already part of Windows 11.
 
@@ -102,7 +100,7 @@ WinWeaver.exe /help
 
 **Can I revert everything?** Almost. Every change is in History with an "Undo" button; things that can't be undone (for example, removed programs) are marked there. A restore point is created before auto-tune.
 
-**My antivirus complains.** Programs that change system settings are sometimes flagged by mistake. The source is open — compare the SHA-256 from the release.
+**My antivirus complains.** Programs that change system settings are sometimes flagged by mistake. The source is open and the exe is built by GitHub Actions straight from this repository — compare the SHA-256.
 
 **Found a bug?** Settings → Report a bug — a GitHub form opens with the version and log filled in. Questions go to [Discussions](https://github.com/fel7xxx/WinWeaver/discussions).
 
@@ -120,12 +118,12 @@ A ⭐ on GitHub and bug reports help a lot too.
 
 ```
 # Windows build
-dotnet publish WinWeaver/WinWeaver.csproj -f net48 -c Release -r win-x64 --self-contained false -o publish
+dotnet publish WinWeaver/WinWeaver.csproj -f net48 -c Release -o publish
 
 # Demo without touching the system (Windows/Linux/macOS)
 dotnet run --project WinWeaver/WinWeaver.csproj -f net8.0 -- /fake
 ```
-Requires .NET SDK 8. Pre-release checks — `powershell -NoProfile -File scripts/verify.ps1` and the [checklist](docs/RELEASE-CHECKLIST.md). How the Avalonia UI works — [docs/AVALONIA-PORT.md](docs/AVALONIA-PORT.md) (Russian); rules — [CONTRIBUTING.md](CONTRIBUTING.md).
+Requires .NET SDK 8. The result is a single `publish\WinWeaver.exe` with all libraries embedded. Pre-release checks — `powershell -NoProfile -File scripts/verify.ps1` and the [checklist](docs/RELEASE-CHECKLIST.md). How the Avalonia UI works — [docs/AVALONIA-PORT.md](docs/AVALONIA-PORT.md) (Russian); rules — [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

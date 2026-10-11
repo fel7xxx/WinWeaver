@@ -27,6 +27,17 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <DefineConstants>$(DefineConstants);PSENGINE</DefineConstants>
+    <!-- Один самостоятельный exe: библиотеки встраиваются в ресурсы (см. App/Embedded.cs) -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <SelfContained>false</SelfContained>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>false</GenerateBindingRedirectsOutputType>
+    <DebugType>embedded</DebugType>
+    <GenerateSupportedRuntime>false</GenerateSupportedRuntime>
+    <ShouldIncludeNativeSkiaSharp>False</ShouldIncludeNativeSkiaSharp>
+    <ShouldIncludeNativeHarfBuzzSharp>False</ShouldIncludeNativeHarfBuzzSharp>
+    <SatelliteResourceLanguages>ru</SatelliteResourceLanguages>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.2.3" />
@@ -57,12 +68,48 @@
     <EmbeddedResource Include="Assets\Fonts\font.regular.ttf" LogicalName="font.regular.ttf" />
     <EmbeddedResource Include="Assets\Fonts\font.semibold.ttf" LogicalName="font.semibold.ttf" />
   </ItemGroup>
-  <!-- net48 публикуется только под Windows: убираем нативные библиотеки других ОС/архитектур -->
-  <Target Name="TrimForeignNatives" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net48' And '$(RuntimeIdentifier)' != ''">
+  <!--
+    net48: один самостоятельный WinWeaver.exe. Все DLL из пакетов (управляемые и нативные win-x64)
+    сжимаются и встраиваются в ресурсы, а в папку сборки/публикации не копируются.
+  -->
+  <UsingTask TaskName="WWGzip" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <OutDir ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.IO.Compression" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        Directory.CreateDirectory(OutDir);
+        foreach (var f in Files)
+        {
+          string target = Path.Combine(OutDir, Path.GetFileName(f.ItemSpec) + ".gz");
+          if (File.Exists(target) && File.GetLastWriteTimeUtc(target) >= File.GetLastWriteTimeUtc(f.ItemSpec)) continue;
+          using (var input = File.OpenRead(f.ItemSpec))
+          using (var output = File.Create(target))
+          using (var gz = new GZipStream(output, CompressionLevel.Optimal))
+            input.CopyTo(gz);
+        }
+      ]]></Code>
+    </Task>
+  </UsingTask>
+  <Target Name="WWEmbedDependencies" AfterTargets="ResolveReferences" BeforeTargets="PrepareResources" Condition="'$(TargetFramework)' == 'net48'">
     <ItemGroup>
-      <_Foreign Include="$(PublishDir)*.dylib;$(PublishDir)*.so;$(PublishDir)arm\**;$(PublishDir)arm64\**;$(PublishDir)x86\**;$(PublishDir)x64\**;$(PublishDir)musl-x64\**" />
+      <_WWNative Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.dll' And ('%(Filename)' == 'libSkiaSharp' Or '%(Filename)' == 'libHarfBuzzSharp' Or '%(Filename)' == 'av_libglesv2')" />
+      <_WWLib Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.dll' And '%(Filename)' != 'libSkiaSharp' And '%(Filename)' != 'libHarfBuzzSharp' And '%(Filename)' != 'av_libglesv2'" />
     </ItemGroup>
-    <Delete Files="@(_Foreign)" />
-    <RemoveDir Directories="$(PublishDir)arm;$(PublishDir)arm64;$(PublishDir)x86;$(PublishDir)x64;$(PublishDir)musl-x64" />
+    <Error Condition="'@(_WWNative->Count())' != '3'" Text="Ожидались 3 нативные библиотеки win-x64 (libSkiaSharp, libHarfBuzzSharp, av_libglesv2), найдено: @(_WWNative->'%(Filename)')" />
+    <WWGzip Files="@(_WWLib);@(_WWNative)" OutDir="$(IntermediateOutputPath)embed" />
+    <ItemGroup>
+      <EmbeddedResource Include="@(_WWLib->'$(IntermediateOutputPath)embed\%(Filename)%(Extension).gz')" LogicalName="ww.lib.%(Filename)%(Extension).gz" WithCulture="false" Type="Non-Resx" />
+      <EmbeddedResource Include="@(_WWNative->'$(IntermediateOutputPath)embed\%(Filename)%(Extension).gz')" LogicalName="ww.native.%(Filename)%(Extension).gz" WithCulture="false" Type="Non-Resx" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" />
+    </ItemGroup>
+  </Target>
+  <Target Name="WWSingleFilePublish" AfterTargets="ComputeResolvedFilesToPublishList" Condition="'$(TargetFramework)' == 'net48'">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.dll' Or '%(Extension)' == '.config' Or '%(Extension)' == '.pdb'" />
+    </ItemGroup>
   </Target>
 </Project>

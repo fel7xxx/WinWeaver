@@ -101,35 +101,17 @@ internal static class Installer
 	}
 
 	// Avalonia is a multi-file deployment. Copy runtime files, not user profiles or logs.
+	/// <summary>WinWeaver — один exe, все библиотеки внутри. Рядом копируются только пользовательские переводы из папки lang.</summary>
 	internal static void CopyDependencies(string source, string destination)
 	{
 		if (SamePath(source, destination)) return;
-		Directory.CreateDirectory(destination);
-		foreach (string path in Directory.GetFiles(source))
-		{
-			if ((File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0) continue;
-			string name = Path.GetFileName(path);
-			string ext = Path.GetExtension(path).ToLowerInvariant();
-			if (ext != ".dll" && ext != ".config" && ext != ".json" && ext != ".so" && ext != ".dylib") continue;
-			if (ext == ".json" && !name.EndsWith(".deps.json", StringComparison.OrdinalIgnoreCase) && !name.EndsWith(".runtimeconfig.json", StringComparison.OrdinalIgnoreCase)) continue;
-			File.Copy(path, Path.Combine(destination, name), true);
-		}
-		foreach (string dir in Directory.GetDirectories(source))
-		{
-			if ((File.GetAttributes(dir) & FileAttributes.ReparsePoint) != 0) continue;
-			string name = Path.GetFileName(dir);
-			if (name.Equals("lang", StringComparison.OrdinalIgnoreCase))
-			{
-				string target = Path.Combine(destination, name);
-				Directory.CreateDirectory(target);
-				foreach (string language in Directory.GetFiles(dir, "*.tsv"))
-					if ((File.GetAttributes(language) & FileAttributes.ReparsePoint) == 0)
-						File.Copy(language, Path.Combine(target, Path.GetFileName(language)), true);
-				continue;
-			}
-			if (name == "runtimes" || name == "x64" || name == "x86" || name == "arm64" || name == "native" || name == "lib" || name.StartsWith("win-", StringComparison.OrdinalIgnoreCase) || name == "net48" || name == "netstandard2.0" || name == "en" || name == "ru")
-				CopyDependencies(dir, Path.Combine(destination, name));
-		}
+		string dir = Path.Combine(source, "lang");
+		if (!Directory.Exists(dir) || (File.GetAttributes(dir) & FileAttributes.ReparsePoint) != 0) return;
+		string target = Path.Combine(destination, "lang");
+		Directory.CreateDirectory(target);
+		foreach (string language in Directory.GetFiles(dir, "*.tsv"))
+			if ((File.GetAttributes(language) & FileAttributes.ReparsePoint) == 0)
+				File.Copy(language, Path.Combine(target, Path.GetFileName(language)), true);
 	}
 
 	private static void Register(string exe)

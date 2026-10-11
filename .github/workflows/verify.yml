@@ -13,3 +13,10 @@ jobs:
       - name: Build and safe regression checks
         shell: powershell
         run: ./scripts/verify.ps1
+      - name: Build single-file exe
+        run: dotnet publish WinWeaver/WinWeaver.csproj -f net48 -c Release -o out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WinWeaver-${{ github.sha }}
+          path: out/WinWeaver.exe
+          retention-days: 14

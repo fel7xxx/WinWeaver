@@ -11,9 +11,9 @@
 Нужен [.NET SDK 8](https://dotnet.microsoft.com/download) (собирается под .NET Framework 4.8, который уже есть в Windows 11).
 
 ```
-dotnet publish WinWeaver/WinWeaver.csproj -f net48 -c Release -r win-x64 --self-contained false -o publish
+dotnet publish WinWeaver/WinWeaver.csproj -f net48 -c Release -o publish
 ```
-или двойной щелчок по `build-windows.bat`. Готовая программа — папка `publish` (WinWeaver.exe + библиотеки).
+или двойной щелчок по `build-windows.bat`. Готовая программа — один файл `publish\WinWeaver.exe` (все библиотеки встроены).
 
 Демо-режим без изменений в системе: `WinWeaver.exe /fake` (всё рисуется на тестовых данных) или на любой ОС `dotnet run --project WinWeaver/WinWeaver.csproj -f net8.0 -- /fake`.
 
@@ -44,7 +44,7 @@ dotnet publish WinWeaver/WinWeaver.csproj -f net48 -c Release -r win-x64 --self-
 ## English
 
 - **Bugs:** in the app use **Settings → Report a bug**, or the [bug form](https://github.com/fel7xxx/WinWeaver/issues/new?template=bug_report.yml). **Ideas:** [feature form](https://github.com/fel7xxx/WinWeaver/issues/new?template=feature_request.yml). **Questions:** [Discussions](https://github.com/fel7xxx/WinWeaver/discussions).
-- **Build:** .NET SDK 8, then `dotnet publish WinWeaver/WinWeaver.csproj -f net48 -c Release -r win-x64 --self-contained false -o publish` (targets .NET Framework 4.8; the result is a folder, not a single exe). Demo mode: `WinWeaver.exe /fake`, or on any OS `dotnet run --project WinWeaver/WinWeaver.csproj -f net8.0 -- /fake`.
+- **Build:** .NET SDK 8, then `dotnet publish WinWeaver/WinWeaver.csproj -f net48 -c Release -o publish` (targets .NET Framework 4.8; the result is a single `publish\WinWeaver.exe` with all libraries embedded). Demo mode: `WinWeaver.exe /fake`, or on any OS `dotnet run --project WinWeaver/WinWeaver.csproj -f net8.0 -- /fake`.
 - **Layout:** `WinWeaver/App` — application code (source texts are Russian); `WinWeaver/Compat` — WinForms/GDI+ → Avalonia layer; `WinWeaver/Resources/engine.ps1` — Windows PowerShell 5.1 engine (no PS7-only syntax); `WinWeaver/Resources/lang.*.tsv` — translations; `scripts/verify.ps1` — checks.
 - **Rules:** every system change goes to History and can be undone; risky options only in expert mode; never download without signature/hash checks; add translations for new texts; keep the GPL-3.0 header.
 - **Translations:** copy `WinWeaver/Resources/lang.en.tsv` to `<code>.tsv`, translate the part after the TAB (keep `\n` and `{0}`), put it into a `lang` folder next to the exe. Run with `WW_LANG=<code>` and `WW_LANG_MISSING=<file>` to collect untranslated texts.

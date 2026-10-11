@@ -1,0 +1,51 @@
+name: Release
+
+# Push a tag like v1.0.2 — the single-file WinWeaver.exe is built here
+# and attached to the GitHub release together with its SHA-256.
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Check that the tag matches the program version
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}'.TrimStart('v')
+          [xml]$proj = Get-Content WinWeaver/WinWeaver.csproj -Raw
+          $version = ($proj.Project.PropertyGroup | Where-Object { $_.Version } | Select-Object -First 1).Version
+          if ($version -ne $tag) { throw "Tag v$tag does not match the program version $version in WinWeaver.csproj" }
+
+      - name: Safe regression checks
+        shell: powershell
+        run: ./scripts/verify.ps1
+
+      - name: Build single-file exe
+        run: dotnet publish WinWeaver/WinWeaver.csproj -f net48 -c Release -o out
+
+      - name: Check single file and checksum
+        shell: pwsh
+        run: |
+          $extra = Get-ChildItem out -File | Where-Object Name -ne 'WinWeaver.exe'
+          if ($extra) { throw "Unexpected files next to WinWeaver.exe: $($extra.Name -join ', ')" }
+          $h = (Get-FileHash out/WinWeaver.exe -Algorithm SHA256).Hash.ToLower()
+          "$h  WinWeaver.exe" | Set-Content out/WinWeaver.exe.sha256 -Encoding ascii
+          Write-Host "SHA-256: $h"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            out/WinWeaver.exe
+            out/WinWeaver.exe.sha256
+          generate_release_notes: true
