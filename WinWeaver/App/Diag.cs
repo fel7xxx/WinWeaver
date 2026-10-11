@@ -60,7 +60,7 @@ internal static class Diag
 	public static string Text(int lines = 80)
 	{
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.AppendLine("WinWeaver 1.0.1 (" + L.T(Installer.RunningInstalled ? "установлен" : "без установки") + ")");
+		stringBuilder.AppendLine("WinWeaver 1.0.2 (" + L.T(Installer.RunningInstalled ? "установлен" : "без установки") + ")");
 		stringBuilder.AppendLine(WindowsLine());
 		stringBuilder.AppendLine("Language: " + L.Lang + " • expert: " + (Prefs.Expert ? "yes" : "no") + " • scale: " + (int)Math.Round(Theme.Scale * 100f) + "%");
 		stringBuilder.AppendLine("---- tweaker.log (last lines) ----");

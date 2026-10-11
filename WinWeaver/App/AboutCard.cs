@@ -105,7 +105,7 @@ internal class AboutCard : Card
 		Size size = Theme.Measure("WinWeaver", _big);
 		int num4 = num2 / 2 - size.Height / 2 - Theme.S(14f);
 		Theme.GradientText(g, "WinWeaver", _big, new PointF(num3, num4));
-		string text = "v1.0.1";
+		string text = "v1.0.2";
 		int width = Theme.PillW(text, Theme.Tiny);
 		Theme.Pill(g, new Rectangle(num3 + size.Width + Theme.S(10f), num4 + (size.Height - Theme.S(20f)) / 2 + Theme.S(2f), width, Theme.S(20f)), text, Theme.Tiny, Theme.Silver2, 22);
 		TextRenderer.DrawText(g, "Твикер Windows 11 (22H2 – 26H2) без окон PowerShell и батников", Theme.Body, new Point(num3, num4 + size.Height + Theme.S(4f)), Theme.Sub, TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding);

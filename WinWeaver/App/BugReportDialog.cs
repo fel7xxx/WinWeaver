@@ -115,7 +115,7 @@ internal class BugReportDialog : PanelDialog
 	protected override bool Validate()
 	{
 		Copy();
-		Shell.Open("https://github.com/fel7xxx/WinWeaver/issues/new?template=bug_report.yml&version=" + Uri.EscapeDataString("1.0.1") + "&windows=" + Uri.EscapeDataString(Diag.WindowsLine()));
+		Shell.Open("https://github.com/fel7xxx/WinWeaver/issues/new?template=bug_report.yml&version=" + Uri.EscapeDataString("1.0.2") + "&windows=" + Uri.EscapeDataString(Diag.WindowsLine()));
 		return true;
 	}
 

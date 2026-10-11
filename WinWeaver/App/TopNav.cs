@@ -40,7 +40,7 @@ internal class TopNav : Control
 
 	public string Selected;
 	public Image Logo;
-	public string Version = "v1.0.1";
+	public string Version = "v1.0.2";
 	public string RebootText;
 	public string RebootSub;
 	public bool RebootScheduled;

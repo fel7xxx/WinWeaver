@@ -124,7 +124,7 @@ internal class WelcomeDialog : PanelDialog
 		{
 			Size size = Theme.Measure("WinWeaver", font);
 			Theme.GradientText(g, "WinWeaver", font, new PointF(rectangle.X + Theme.S(26f), (float)rectangle.Y + (float)(rectangle.Height - size.Height) / 2f - (float)Theme.S(10f)));
-			TextRenderer.DrawText(g, L.T("настройка Windows 11") + "  •  v1.0.1  •  fel7xxx", Theme.Small, new Point(rectangle.X + Theme.S(28f), rectangle.Y + (rectangle.Height + size.Height) / 2 - Theme.S(6f)), Theme.Mix(Theme.Sub, Theme.IceHi, 0.3f), TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding);
+			TextRenderer.DrawText(g, L.T("настройка Windows 11") + "  •  v1.0.2  •  fel7xxx", Theme.Small, new Point(rectangle.X + Theme.S(28f), rectangle.Y + (rectangle.Height + size.Height) / 2 - Theme.S(6f)), Theme.Mix(Theme.Sub, Theme.IceHi, 0.3f), TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding);
 		}
 		Label(g, "Язык", _labLang, "можно сменить в «Настройках»");
 		Label(g, "Установка", _labInst);

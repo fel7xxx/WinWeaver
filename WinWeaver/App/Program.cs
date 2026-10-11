@@ -284,7 +284,7 @@ internal static class Program
 		}
 		if (Installer.InstalledIsOlder)
 		{
-			switch (WDialog.Choose(null, L.T("Обновить {0}?").Replace("{0}", "WinWeaver"), L.T("Установлена версия {0}, а запущена {1}. Заменить установленную копию в Program Files?").Replace("{0}", Installer.FileVersion(Brand.InstalledExe).ToString(3)).Replace("{1}", "1.0.1"), "Обновить", "Запустить без обновления", "Отмена"))
+			switch (WDialog.Choose(null, L.T("Обновить {0}?").Replace("{0}", "WinWeaver"), L.T("Установлена версия {0}, а запущена {1}. Заменить установленную копию в Program Files?").Replace("{0}", Installer.FileVersion(Brand.InstalledExe).ToString(3)).Replace("{1}", "1.0.2"), "Обновить", "Запустить без обновления", "Отмена"))
 			{
 			case 2:
 				return 0;

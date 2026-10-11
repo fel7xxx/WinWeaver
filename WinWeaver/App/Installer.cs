@@ -96,7 +96,7 @@ internal static class Installer
 		{
 			Program.Log("SHORTCUT ERR " + ex2.Message);
 		}
-		Program.Log("INSTALLED " + installedExe + " v1.0.1");
+		Program.Log("INSTALLED " + installedExe + " v1.0.2");
 		return installedExe;
 	}
 

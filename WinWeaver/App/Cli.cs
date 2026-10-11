@@ -11,7 +11,7 @@ internal static class Cli
 {
 	private static bool _own;
 
-	public static string Help => "WinWeaver 1.0.1 — " + L.T("настройка Windows 11") + "\n\n  WinWeaver.exe /apply <light|optimal|gamer> [/browser <keep|firefox|chrome|brave|yandex|operagx>]\n                [/opts \"7zip,vc,ext,temp,drv\"] [/wallpaper 1-" + Walls.Count + "] [/nowall] [/noname]\n                [/defender <asis|quiet>] [/restart]\n  WinWeaver.exe /uninstall [/quiet] [/undo]\n  WinWeaver.exe /version\n\n" + L.T("Каждый шаг записывается в «Историю» — его можно отменить в программе. Журнал:") + " " + Brand.LogPath + "\n";
+	public static string Help => "WinWeaver 1.0.2 — " + L.T("настройка Windows 11") + "\n\n  WinWeaver.exe /apply <light|optimal|gamer> [/browser <keep|firefox|chrome|brave|yandex|operagx>]\n                [/opts \"7zip,vc,ext,temp,drv\"] [/wallpaper 1-" + Walls.Count + "] [/nowall] [/noname]\n                [/defender <asis|quiet>] [/restart]\n  WinWeaver.exe /uninstall [/quiet] [/undo]\n  WinWeaver.exe /version\n\n" + L.T("Каждый шаг записывается в «Историю» — его можно отменить в программе. Журнал:") + " " + Brand.LogPath + "\n";
 
 	[DllImport("kernel32.dll")]
 	private static extern bool AttachConsole(int pid);
@@ -68,7 +68,7 @@ internal static class Cli
 			switch (args[0].ToLowerInvariant())
 			{
 			case "/version":
-				Console.WriteLine("WinWeaver 1.0.1");
+				Console.WriteLine("WinWeaver 1.0.2");
 				break;
 			case "/apply":
 				result = Apply(args, fake);

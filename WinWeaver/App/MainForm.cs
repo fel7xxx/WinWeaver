@@ -3392,7 +3392,7 @@ internal class MainForm : Form
 					{
 						if (manual)
 						{
-							_status.Set("ok", L.T("Установлена последняя версия {0}").Replace("{0}", "1.0.1"));
+							_status.Set("ok", L.T("Установлена последняя версия {0}").Replace("{0}", "1.0.2"));
 						}
 					}
 					else
@@ -3401,7 +3401,7 @@ internal class MainForm : Form
 						_side.SetUpdate(L.T("Доступна версия {0}").Replace("{0}", r.Tag.TrimStart('v', 'V')), "Открыть страницу загрузки");
 						if (manual || Prefs.SkipVersion != r.Tag)
 						{
-							switch (WDialog.Choose(this, L.T("Вышла версия {0}").Replace("{0}", r.Tag.TrimStart('v', 'V')), L.T("Сейчас установлена {0}. Новую версию можно скачать со страницы релиза на GitHub — там же список изменений.\n\nПрограмма ничего не скачивает и не обновляет сама.").Replace("{0}", "1.0.1"), "Открыть страницу", "Пропустить эту версию", "Позже", DlgIcon.Info))
+							switch (WDialog.Choose(this, L.T("Вышла версия {0}").Replace("{0}", r.Tag.TrimStart('v', 'V')), L.T("Сейчас установлена {0}. Новую версию можно скачать со страницы релиза на GitHub — там же список изменений.\n\nПрограмма ничего не скачивает и не обновляет сама.").Replace("{0}", "1.0.2"), "Открыть страницу", "Пропустить эту версию", "Позже", DlgIcon.Info))
 							{
 							case 0:
 								Shell.Open(r.Url ?? "https://github.com/fel7xxx/WinWeaver/releases");
@@ -3583,7 +3583,7 @@ internal class MainForm : Form
 		_host.Worker.Run(delegate(IEngine e)
 		{
 			StringBuilder stringBuilder = new StringBuilder();
-			stringBuilder.Append("{\n  \"app\": \"WinWeaver\",\n  \"format\": 1,\n  \"version\": ").Append(J("1.0.1")).Append(",\n  \"created\": ")
+			stringBuilder.Append("{\n  \"app\": \"WinWeaver\",\n  \"format\": 1,\n  \"version\": ").Append(J("1.0.2")).Append(",\n  \"created\": ")
 				.Append(J(DateTime.Now.ToString("s")))
 				.Append(",\n  \"settings\": {");
 			int num = 0;
@@ -3921,7 +3921,7 @@ internal class MainForm : Form
 		}));
 		TilesView tilesView2 = page.Add(new TilesView(_host));
 		tilesView2.TileH = 124;
-		tilesView2.AddUi("\ue895", "Проверить обновления", L.T("Сейчас установлена версия {0}").Replace("{0}", "1.0.1"), "Откроется страница релиза на GitHub", delegate
+		tilesView2.AddUi("\ue895", "Проверить обновления", L.T("Сейчас установлена версия {0}").Replace("{0}", "1.0.2"), "Откроется страница релиза на GitHub", delegate
 		{
 			CheckUpdates(manual: true);
 		}, "Проверить");
